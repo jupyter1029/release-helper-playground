@@ -7,8 +7,8 @@ readme_path = pathlib.Path("./README.md")
 requirements_path = pathlib.Path("./requirements.txt")
 
 setup_args = dict(
-    name="release_helpers",
-    description="Release helpers for Python and/or npm packages.",
+    name="release_helper",
+    description="Release helper for Python and/or npm packages.",
     long_description=readme_path.read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
     version="0.1.0",
@@ -35,7 +35,7 @@ setup_args = dict(
     python_requires=">=3.6",
     entry_points={
         "console_scripts": [
-            "release-helpers = release_helpers.__main__:main",
+            "release-helper= release_helper.__main__:main",
         ]
     },
 )

@@ -16,7 +16,6 @@ jobs:
       VERSION_SPEC: "100.5.1"
       POST_VERSION_SPEC: "100.6.0.dev0"
       CHANGELOG_OUTPUT: "changelog_entry.md"
-      RELEASE_HELPER: "python -m scripts"
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -45,13 +44,13 @@ jobs:
           pip install -e .[publishing,test]
       - name: Initialize Environment
         run: |
-          ${RELEASE_HELPER} prep-env
+          release-helper prep-env
           cat ${GITHUB_ENV}
       - name: Run the changelog prep
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ${RELEASE_HELPER} prep-changelog
+          release-helper prep-changelog
           git diff
       - name: Make a PR with the changelog entry change
         run: |
@@ -62,10 +61,10 @@ jobs:
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ${RELEASE_HELPER} bump-version
-          ${RELEASE_HELPER} validate-changelog
-          ${RELEASE_HELPER} prep-python
-          ${RELEASE_HELPER} prep-release
+          release-helper bump-version
+          release-helper validate-changelog
+          release-helper prep-python
+          release-helper prep-release
           cat ${CHANGELOG_OUTPUT}
       - name: Publish PyPI Package
         env:

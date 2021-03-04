@@ -10,7 +10,6 @@ from unittest.mock import patch
 
 from click.testing import CliRunner
 from pytest import fixture
-
 from release_helpers import __main__ as main
 
 PR_ENTRY = "Mention the required GITHUB_ACCESS_TOKEN [#1](https://github.com/executablebooks/github-activity/pull/1) ([@consideRatio](https://github.com/consideRatio))"
