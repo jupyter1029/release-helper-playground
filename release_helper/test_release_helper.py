@@ -90,6 +90,12 @@ requires = ["setuptools>=40.8.0", "wheel"]
 build-backend = "setuptools.build_meta"
 """
 
+CHANGELOG_TEMPLATE = f"""
+# Changelog
+{main.START_MARKER}
+{main.END_MARKER}
+"""
+
 
 @fixture
 def git_repo(tmp_path):
@@ -116,19 +122,22 @@ def git_repo(tmp_path):
 
 def create_python_package(git_repo):
     setuppy = git_repo / "setup.py"
-    setuppy.write_text(
-        SETUP_PY_TEMPLATE,
-        encoding="utf-8",
-    )
+    setuppy.write_text(SETUP_PY_TEMPLATE, encoding="utf-8")
 
     tbump = git_repo / "tbump.toml"
-    tbump.write_text(TBUMP_BASE_TEMPLATE, TBUMP_PY_TEMPLATE, encoding="utf-8")
+    tbump.write_text(TBUMP_BASE_TEMPLATE + TBUMP_PY_TEMPLATE, encoding="utf-8")
 
     pyproject = git_repo / "pyproject.toml"
     pyproject.write_text(PYPROJECT_TEMPLATE, encoding="utf-8")
 
     readme = git_repo / "README.md"
     readme.write_text("Hello from foo project", encoding="utf-8")
+
+    foopy = git_repo / "foo.py"
+    foopy.write_text('print("hello, world!")', encoding="utf-8")
+
+    changelog = git_repo / "CHANGELOG.md"
+    changelog.write_text(CHANGELOG_TEMPLATE, encoding="utf-8")
 
     main.run("git add .")
     main.run('git commit -m "initial python package"')
@@ -222,7 +231,7 @@ def test_get_changelog_entry(py_package):
 
 
 def test_compute_sha256(py_package):
-    sha = "9ff86928054a7791ed023c799702b0fa343f4a371127c43bdf583d4b0ee3a6f3"
+    sha = "e0d25b8bfeeb7e20d494bcdc12fcf09cb86951a0ddd8d7dbc2b99999e589e42f"
     assert main.compute_sha256(py_package / "CHANGELOG.md") == sha
 
 
@@ -243,7 +252,7 @@ def test_create_release_commit(py_package):
     with open(py_package / "package.json", "w") as fid:
         json.dump(data, fid, indent=4)
     txt = (py_package / "tbump.toml").read_text(encoding="utf-8")
-    txt += TBUMP_BASE_TEMPLATE
+    txt += TBUMP_NPM_TEMPLATE
     (py_package / "tbump.toml").write_text(txt, encoding="utf-8")
     main.bump_version("0.0.2a1")
     version = main.get_version()
