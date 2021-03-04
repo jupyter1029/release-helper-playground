@@ -38,6 +38,58 @@ CHANGELOG_ENTRY = f"""
 [@betatim](https://github.com/search?q=repo%3Aexecutablebooks%2Fgithub-activity+involves%3Abetatim+updated%3A2019-09-01..2019-11-01&type=Issues) | [@choldgraf](https://github.com/search?q=repo%3Aexecutablebooks%2Fgithub-activity+involves%3Acholdgraf+updated%3A2019-09-01..2019-11-01&type=Issues) | [@consideRatio](https://github.com/search?q=repo%3Aexecutablebooks%2Fgithub-activity+involves%3AconsideRatio+updated%3A2019-09-01..2019-11-01&type=Issues)
 """
 
+SETUP_PY_TEMPLATE = """
+import setuptools
+import os
+
+setup_args = dict(
+    name="foo",
+    version="0.0.1",
+    url="foo url",
+    author="foo author",
+    author_email="foo email",
+    py_modules=["foo"],
+    description="foo package",
+    long_description="long_description",
+    long_description_content_type="text/markdown",
+    zip_safe=False,
+    include_package_data=True,
+)
+if __name__ == "__main__":
+    setuptools.setup(**setup_args)
+"""
+
+TBUMP_BASE_TEMPLATE = r"""
+[version]
+current = "0.0.1"
+regex = '''
+  (?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)
+  ((?P<channel>a|b|rc|.dev)(?P<release>\d+))?
+'''
+
+[git]
+message_template = "Bump to {new_version}"
+tag_template = "v{new_version}"
+"""
+
+TBUMP_PY_TEMPLATE = """
+[[file]]
+src = "setup.py"
+search = 'version="{current_version}"'
+"""
+
+TBUMP_NPM_TEMPLATE = """
+[[file]]
+src = "package.json"
+search = '"version": "{current_version}"'
+"""
+
+PYPROJECT_TEMPLATE = """
+[build-system]
+requires = ["setuptools>=40.8.0", "wheel"]
+build-backend = "setuptools.build_meta"
+"""
+
 
 @fixture
 def git_repo(tmp_path):
@@ -65,72 +117,15 @@ def git_repo(tmp_path):
 def create_python_package(git_repo):
     setuppy = git_repo / "setup.py"
     setuppy.write_text(
-        """
-import setuptools
-import os
-
-setup_args = dict(
-    name="foo",
-    version="0.0.1",
-    url="foo url",
-    author="foo author",
-    author_email="foo email",
-    py_modules=["foo"],
-    description="foo package",
-    long_description="long_description",
-    long_description_content_type="text/markdown",
-    zip_safe=False,
-    include_package_data=True,
-)
-if __name__ == "__main__":
-    setuptools.setup(**setup_args)
-""",
+        SETUP_PY_TEMPLATE,
         encoding="utf-8",
     )
 
     tbump = git_repo / "tbump.toml"
-    tbump.write_text(
-        r"""
-[version]
-current = "0.0.1"
-regex = '''
-  (?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)
-  ((?P<channel>a|b|rc|.dev)(?P<release>\d+))?
-'''
-
-[git]
-message_template = "Bump to {new_version}"
-tag_template = "v{new_version}"
-
-[[file]]
-src = "setup.py"
-""",
-        encoding="utf-8",
-    )
-
-    foopy = git_repo / "foo.py"
-    foopy.write_text('print("hello, world!")', encoding="utf-8")
-
-    changelog = git_repo / "CHANGELOG.md"
-    changelog.write_text(
-        f"""
-# Changelog
-
-{main.START_MARKER}
-{main.END_MARKER}
-""",
-        encoding="utf-8",
-    )
+    tbump.write_text(TBUMP_BASE_TEMPLATE, TBUMP_PY_TEMPLATE, encoding="utf-8")
 
     pyproject = git_repo / "pyproject.toml"
-    pyproject.write_text(
-        """
-[build-system]
-requires = ["setuptools>=40.8.0", "wheel"]
-build-backend = "setuptools.build_meta"
-""",
-        encoding="utf-8",
-    )
+    pyproject.write_text(PYPROJECT_TEMPLATE, encoding="utf-8")
 
     readme = git_repo / "README.md"
     readme.write_text("Hello from foo project", encoding="utf-8")
@@ -248,11 +243,7 @@ def test_create_release_commit(py_package):
     with open(py_package / "package.json", "w") as fid:
         json.dump(data, fid, indent=4)
     txt = (py_package / "tbump.toml").read_text(encoding="utf-8")
-    txt += """
-[[file]]
-src = "package.json"
-search = '"version": "{current_version}"'
-"""
+    txt += TBUMP_BASE_TEMPLATE
     (py_package / "tbump.toml").write_text(txt, encoding="utf-8")
     main.bump_version("0.0.2a1")
     version = main.get_version()
