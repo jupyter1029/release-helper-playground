@@ -12,7 +12,8 @@ from subprocess import check_output
 import click
 import requests
 from github_activity import generate_activity_md
-from release_helpers import __version__
+
+from release_helper import __version__
 
 HERE = osp.abspath(osp.dirname(__file__))
 START_MARKER = "<!-- <START NEW CHANGELOG ENTRY> -->"
