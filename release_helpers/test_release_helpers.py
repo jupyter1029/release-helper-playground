@@ -53,8 +53,13 @@ def git_repo(tmp_path):
     run('git commit -m "foo"')
     run("git tag v0.0.1")
     run(f"git remote add upstream {tmp_path}")
-    run('git config user.name "snuffy"')
-    run('git config user.email "snuffy@sesame.com"')
+    if not ("git config --global user.name"):
+        level = "global"
+    else:
+        level == "local"
+
+    run(f'git config --{level} user.name "snuffy"')
+    run(f'git config --{level} user.email "snuffy@sesame.com"')
 
     yield tmp_path
     os.chdir(prev_dir)
