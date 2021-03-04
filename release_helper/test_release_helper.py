@@ -45,15 +45,10 @@ def git_repo(tmp_path):
 
     run = main.run
 
-    # Set up git config
-    # If running on CI there will be no user.name set
-    username = "snuffy"
-    email = "snuffy@sesame.com"
-    if not ("git config --global user.name"):
-        run(f"git config --global user.name {username}")
-        run(f"git config --global user.email {email}")
-
     run("git init")
+    run("git config user.name snuffy")
+    run("git config user.email snuffy@sesame.com")
+
     run("git checkout -b foo")
     gitignore = tmp_path / ".gitignore"
     gitignore.write_text("dist/*\nbuild/*", encoding="utf-8")
@@ -61,13 +56,6 @@ def git_repo(tmp_path):
     run('git commit -m "foo"')
     run("git tag v0.0.1")
     run(f"git remote add upstream {tmp_path}")
-    if not ("git config --global user.name"):
-        level = "global"
-    else:
-        level == "local"
-
-    run(f"git config user.name {username}")
-    run(f"git config user.email {email}")
 
     yield tmp_path
     os.chdir(prev_dir)
