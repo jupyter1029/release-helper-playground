@@ -69,3 +69,6 @@ jobs:
       - name: Run the tests
         run: |
           pytest -vv --cov release_helpers --cov-branch --cov-report term-missing:skip-covered
+      - name: Coverage
+        run: |
+          codecov
