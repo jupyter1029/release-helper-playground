@@ -53,7 +53,7 @@ def get_version():
     if osp.exists("setup.py"):
         return run("python setup.py --version", quiet=True)
     elif osp.exists("package.json"):
-        return json.loads(Path("package.json").read_text())["version"]
+        return json.loads(Path("package.json").read_text(encoding="utf-8"))["version"]
     else:
         raise ValueError("No version identifier could be found!")
 
@@ -218,7 +218,7 @@ def create_release_commit(version):
             cmd += f' -m "{path}: {sha256}"'
 
     if osp.exists("package.json"):
-        data = json.loads(Path("package.json").read_text())
+        data = json.loads(Path("package.json").read_text(encoding="utf-8"))
         if not data.get("private", False):
             filename = run("npm pack")
             sha256 = compute_sha256(filename)
@@ -243,11 +243,11 @@ def _bump_version(version_spec, version_cmd=""):
             version_cmd = version_cmd or TBUMP_CMD
 
         if osp.exists("pyproject.toml"):
-            if "tbump" in Path("pyproject.toml").read_text():
+            if "tbump" in Path("pyproject.toml").read_text(encoding="utf-8"):
                 version_cmd = version_cmd or TBUMP_CMD
 
         if osp.exists("setup.cfg"):
-            if "bumpversion" in Path("setup.cfg").read_text():
+            if "bumpversion" in Path("setup.cfg").read_text(encoding="utf-8"):
                 version_cmd = version_cmd or "bump2version"
 
     if not version_cmd:
@@ -409,7 +409,8 @@ BRANCH={branch}
 VERSION={version}
 REPOSITORY={repo}
 IS_PRERELEASE={is_prerelease}
-""".strip()
+""".strip(),
+            encoding="utf-8",
         )
 
 
@@ -429,7 +430,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports):
     run("git checkout .")
 
     # Get the existing changelog and run some validation
-    changelog = Path(path).read_text()
+    changelog = Path(path).read_text(encoding="utf-8")
 
     if START_MARKER not in changelog or END_MARKER not in changelog:
         raise ValueError("Missing insert marker for changelog")
@@ -453,7 +454,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports):
     changelog = changelog.replace(END_MARKER + "\n", "")
     changelog = changelog.replace(START_MARKER, template)
 
-    Path(path).write_text(changelog)
+    Path(path).write_text(changelog, encoding="utf-8")
 
     ## Verify the change for the PR
     # Only one uncommitted file
@@ -480,7 +481,7 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
     version = get_version()
 
     # Finalize the changelog
-    changelog = Path(path).read_text()
+    changelog = Path(path).read_text(encoding="utf-8")
 
     start = changelog.find(START_MARKER)
     end = changelog.find(END_MARKER)
@@ -525,7 +526,7 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
             raise ValueError(f"PR #{pr} does not belong in the changelog for {version}")
 
     if output:
-        Path(output).write_text(final_entry)
+        Path(output).write_text(final_entry, encoding="utf-8")
 
 
 @cli.command()

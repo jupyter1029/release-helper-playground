@@ -50,7 +50,7 @@ def git_repo(tmp_path):
     r("git init")
     r("git checkout -b foo")
     gitignore = tmp_path / ".gitignore"
-    gitignore.write_text("dist/*\nbuild/*")
+    gitignore.write_text("dist/*\nbuild/*", encoding="utf-8")
     r("git add .")
     r('git commit -m "foo"')
     r("git tag v0.0.1")
@@ -86,7 +86,8 @@ setup_args = dict(
 )
 if __name__ == "__main__":
     setuptools.setup(**setup_args)
-"""
+""",
+        encoding="utf-8",
     )
 
     tbump = git_repo / "tbump.toml"
@@ -105,11 +106,12 @@ tag_template = "v{new_version}"
 
 [[file]]
 src = "setup.py"
-"""
+""",
+        encoding="utf-8",
     )
 
     foopy = git_repo / "foo.py"
-    foopy.write_text('print("hello, world!")')
+    foopy.write_text('print("hello, world!")', encoding="utf-8")
 
     changelog = git_repo / "CHANGELOG.md"
     changelog.write_text(
@@ -118,7 +120,8 @@ src = "setup.py"
 
 {main.START_MARKER}
 {main.END_MARKER}
-"""
+""",
+        encoding="utf-8",
     )
 
     pyproject = git_repo / "pyproject.toml"
@@ -127,11 +130,12 @@ src = "setup.py"
 [build-system]
 requires = ["setuptools>=40.8.0", "wheel"]
 build-backend = "setuptools.build_meta"
-"""
+""",
+        encoding="utf-8",
     )
 
     readme = git_repo / "README.md"
-    readme.write_text("Hello from foo project")
+    readme.write_text("Hello from foo project", encoding="utf-8")
 
     r("git add .")
     r('git commit -m "initial python package"')
@@ -266,13 +270,13 @@ def test_create_release_commit(py_package):
     data["version"] = version
     with open(py_package / "package.json", "w") as fid:
         json.dump(data, fid, indent=4)
-    txt = (py_package / "tbump.toml").read_text()
+    txt = (py_package / "tbump.toml").read_text(encoding="utf-8")
     txt += """
 [[file]]
 src = "package.json"
 search = '"version": "{current_version}"'
 """
-    (py_package / "tbump.toml").write_text(txt)
+    (py_package / "tbump.toml").write_text(txt, encoding="utf-8")
     main._bump_version("0.0.2a1")
     version = main.get_version()
     r("python -m build .")
@@ -350,7 +354,7 @@ def test_prep_env(py_package, tmp_path):
         )
 
     assert result.exit_code == 0
-    text = env_file.read_text()
+    text = env_file.read_text(encoding="utf-8")
     assert "BRANCH=foo" in text
     assert f"VERSION={version_spec}" in text
     assert "IS_PRERELEASE=true" in text
@@ -369,7 +373,7 @@ def test_prep_changelog(py_package):
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(main.cli, ["prep-changelog", "--path", changelog])
     assert result.exit_code == 0
-    text = changelog.read_text()
+    text = changelog.read_text(encoding="utf-8")
     assert main.START_MARKER in text
     assert main.END_MARKER in text
     assert PR_ENTRY in text
@@ -401,8 +405,8 @@ def test_validate_changelog(py_package, tmp_path):
         )
     assert result.exit_code == 0
 
-    assert PR_ENTRY in output.read_text()
-    text = changelog.read_text()
+    assert PR_ENTRY in output.read_text(encoding="utf-8")
+    text = changelog.read_text(encoding="utf-8")
     assert f"{main.START_MARKER}\n## {version_spec}" in text
     assert main.END_MARKER in text
 

@@ -9,7 +9,7 @@ requirements_path = pathlib.Path("./requirements.txt")
 setup_args = dict(
     name="release_helpers",
     description="Release helpers for Python and/or npm packages.",
-    long_description=readme_path.read_text(),
+    long_description=readme_path.read_text(encoding="utf-8"),
     long_description_content_type="text/markdown",
     version="0.1.0",
     packages=find_packages("."),
@@ -30,7 +30,7 @@ setup_args = dict(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
     ],
-    install_requires=requirements_path.read_text().splitlines(),
+    install_requires=requirements_path.read_text(encoding="utf-8").splitlines(),
     extras_require={"test": ["coverage", "pytest", "pytest-cov"]},
     python_requires=">=3.6",
     entry_points={
