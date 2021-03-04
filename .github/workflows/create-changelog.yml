@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       version_sepc:
-        description: 'New Version Spec'
+        description: "New Version Spec"
         required: true
 jobs:
   changelog:
@@ -12,55 +12,55 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu]
-        python-version: ['3.9']
+        python-version: ["3.9"]
     env:
-       VERSION_SPEC: ${{ github.event.inputs.version }}
-       RELEASE_HELPER: "python -m scripts"
+      VERSION_SPEC: ${{ github.event.inputs.version }}
+      RELEASE_HELPER: "python -m scripts"
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Install Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-        architecture: 'x64'
-    - name: Upgrade packaging dependencies
-      run: |
-        pip install --upgrade pip setuptools wheel --user
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        echo "::set-output name=dir::$(pip cache dir)"
-    - name: Cache pip
-      uses: actions/cache@v1
-      with:
-        path: ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.py') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-${{ matrix.python-version }}-
-          ${{ runner.os }}-pip-
-    - name: Install Dependencies
-      run: |
-        pip install -e .[publishing,test]
-    - name: Bump the Version
-      run: |
-        ${RELEASE_HELPER} bump-version
-    - name: Initialize Environment
-      run: |
-        ${RELEASE_HELPER} prep-env
-        cat ${GITHUB_ENV}
-    - name: Run the changelog prep
-      env:
-        GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        ${RELEASE_HELPER} prep-changelog
-        git diff
-    - name: Make a PR with the changelog entry change
-      uses: peter-evans/create-pull-request@v3
-      with:
-        title: "Automated Changelog for ${{ env.VERSION }} on ${{ env.BRANCH }}"
-        branch-suffix: timestamp
-        delete-branch: true
-        base: ${{ env.BRANCH }}
-        commit-message: "Generate changelog for ${{ env.VERSION }}"
-        body: "Automated Changelog for ${{ env.VERSION }} on ${{ env.BRANCH }}"
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Install Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: "x64"
+      - name: Upgrade packaging dependencies
+        run: |
+          pip install --upgrade pip setuptools wheel --user
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          echo "::set-output name=dir::$(pip cache dir)"
+      - name: Cache pip
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+      - name: Install Dependencies
+        run: |
+          pip install -e .[publishing,test]
+      - name: Bump the Version
+        run: |
+          ${RELEASE_HELPER} bump-version
+      - name: Initialize Environment
+        run: |
+          ${RELEASE_HELPER} prep-env
+          cat ${GITHUB_ENV}
+      - name: Run the changelog prep
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ${RELEASE_HELPER} prep-changelog
+          git diff
+      - name: Make a PR with the changelog entry change
+        uses: peter-evans/create-pull-request@v3
+        with:
+          title: "Automated Changelog for ${{ env.VERSION }} on ${{ env.BRANCH }}"
+          branch-suffix: timestamp
+          delete-branch: true
+          base: ${{ env.BRANCH }}
+          commit-message: "Generate changelog for ${{ env.VERSION }}"
+          body: "Automated Changelog for ${{ env.VERSION }} on ${{ env.BRANCH }}"

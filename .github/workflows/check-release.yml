@@ -1,9 +1,9 @@
 name: Check Release
 on:
   push:
-    branches: '*'
+    branches: "*"
   pull_request:
-    branches: '*'
+    branches: "*"
 jobs:
   release_check:
     runs-on: ${{ matrix.os }}-latest
@@ -11,95 +11,95 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu]
-        python-version: ['3.9']
+        python-version: ["3.9"]
     env:
-       VERSION_SPEC: "100.5.1"
-       POST_VERSION_SPEC: "100.6.0.dev0"
-       CHANGELOG_OUTPUT: "changelog_entry.md"
-       RELEASE_HELPER: "python -m scripts"
+      VERSION_SPEC: "100.5.1"
+      POST_VERSION_SPEC: "100.6.0.dev0"
+      CHANGELOG_OUTPUT: "changelog_entry.md"
+      RELEASE_HELPER: "python -m scripts"
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Install Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
-      with:
-        python-version: ${{ matrix.python-version }}
-        architecture: 'x64'
-    - name: Upgrade packaging dependencies
-      run: |
-        pip install --upgrade pip setuptools wheel --user
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        echo "::set-output name=dir::$(pip cache dir)"
-    - name: Cache pip
-      uses: actions/cache@v1
-      with:
-        path: ${{ steps.pip-cache.outputs.dir }}
-        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.py') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-${{ matrix.python-version }}-
-          ${{ runner.os }}-pip-
-    - name: Install Dependencies
-      run: |
-        pip install -e .[publishing,test]
-    - name: Bump the Version
-      run: |
-        ${RELEASE_HELPER} bump-version
-    - name: Initialize Environment
-      run: |
-        ${RELEASE_HELPER} prep-env
-        cat ${GITHUB_ENV}
-    - name: Run the changelog prep
-      env:
-        GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        ${RELEASE_HELPER} prep-changelog
-        git diff
-    - name: Make a PR with the changelog entry change
-      run: |
-        echo "Can't make a PR on the release check"
-        echo "Commiting changes locally"
-        git commit -a -m "Commit Changelog"
-    - name: Run the release prep
-      env:
-        GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        ${RELEASE_HELPER} bump-version
-        ${RELEASE_HELPER} validate-changelog
-        ${RELEASE_HELPER} prep-python
-        ${RELEASE_HELPER} prep-release
-        cat ${CHANGELOG_OUTPUT}
-    - name: Publish PyPI Package
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
-        REGISTRY: https://test.pypi.org/legacy/
-      run: |
-        twine upload --repository-url ${REGISTRY} --skip-existing dist/*
-    - name: Push the commit(s) and tag(s) to the branch
-      run: |
-        echo "Can't push on the release check"
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v${{ env.VERSION }}
-        release_name: Release v${{ env.VERSION }}
-        body_path: ${{ env.CHANGELOG_OUTPUT }}
-        prerelease: ${{ env.IS_PRERELEASE == 'true' }}
-        draft: true
-    - name: Delete Draft Release
-      env:
-        RELEASE_ID: ${{ steps.create_release.outputs.id }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        HTML_URL: ${{ steps.create_release.outputs.html_url}}
-      run: |
-        echo "For release check we don't want to leave a draft release open"
-        curl \
-          -X DELETE \
-          -H "Accept: application/vnd.github.v3+json" \
-          -H "Authorization: token ${GITHUB_TOKEN}" \
-          ${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Install Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: "x64"
+      - name: Upgrade packaging dependencies
+        run: |
+          pip install --upgrade pip setuptools wheel --user
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          echo "::set-output name=dir::$(pip cache dir)"
+      - name: Cache pip
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+      - name: Install Dependencies
+        run: |
+          pip install -e .[publishing,test]
+      - name: Bump the Version
+        run: |
+          ${RELEASE_HELPER} bump-version
+      - name: Initialize Environment
+        run: |
+          ${RELEASE_HELPER} prep-env
+          cat ${GITHUB_ENV}
+      - name: Run the changelog prep
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ${RELEASE_HELPER} prep-changelog
+          git diff
+      - name: Make a PR with the changelog entry change
+        run: |
+          echo "Can't make a PR on the release check"
+          echo "Commiting changes locally"
+          git commit -a -m "Commit Changelog"
+      - name: Run the release prep
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ${RELEASE_HELPER} bump-version
+          ${RELEASE_HELPER} validate-changelog
+          ${RELEASE_HELPER} prep-python
+          ${RELEASE_HELPER} prep-release
+          cat ${CHANGELOG_OUTPUT}
+      - name: Publish PyPI Package
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_TOKEN }}
+          REGISTRY: https://test.pypi.org/legacy/
+        run: |
+          twine upload --repository-url ${REGISTRY} --skip-existing dist/*
+      - name: Push the commit(s) and tag(s) to the branch
+        run: |
+          echo "Can't push on the release check"
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: Release v${{ env.VERSION }}
+          body_path: ${{ env.CHANGELOG_OUTPUT }}
+          prerelease: ${{ env.IS_PRERELEASE == 'true' }}
+          draft: true
+      - name: Delete Draft Release
+        env:
+          RELEASE_ID: ${{ steps.create_release.outputs.id }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HTML_URL: ${{ steps.create_release.outputs.html_url}}
+        run: |
+          echo "For release check we don't want to leave a draft release open"
+          curl \
+            -X DELETE \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            ${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}
