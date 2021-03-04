@@ -258,8 +258,7 @@ def test_create_release_commit(py_package):
     version = main.get_version()
     main.run("python -m build .")
     shas = main.create_release_commit(version)
-    npm_dist = f"{py_package.name}-0.0.2a1.tgz"
-    assert npm_dist in shas
+    assert len(shas) == 3
     assert "dist/foo-0.0.2a1.tar.gz" in shas
 
 
@@ -273,7 +272,9 @@ def test_bump_version(py_package):
 def test_prep_env_simple(py_package):
     """Standard local run with no env variables."""
     runner = CliRunner()
-    result = runner.invoke(main.cli, ["prep-env", "--version-spec", "1.0.1"])
+    result = runner.invoke(
+        main.cli, ["prep-env", "--version-spec", "1.0.1"], env=dict(GITHUB_ACTION="")
+    )
     assert result.exit_code == 0
     assert "branch=bar" in result.output
     assert "version=1.0.1" in result.output
@@ -283,7 +284,7 @@ def test_prep_env_simple(py_package):
 def test_prep_env_pr(py_package):
     """With GITHUB_BASE_REF (Pull Request)"""
     runner = CliRunner()
-    env = dict(GITHUB_BASE_REF="foo", VERSION_SPEC="1.0.1")
+    env = dict(GITHUB_BASE_REF="foo", VERSION_SPEC="1.0.1", GITHUB_ACTION="")
     result = runner.invoke(main.cli, ["prep-env"], env=env)
     assert result.exit_code == 0
     assert "branch=foo" in result.output

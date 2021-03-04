@@ -357,7 +357,7 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
     gh_repo = os.environ.get("GITHUB_REPOSITORY")
 
     # Set up git config if on GitHub Actions
-    is_action = "GITHUB_ACTIONS" in os.environ
+    is_action = "GITHUB_ACTIONS" in os.environ and os.environ["GITHUB_ACTIONS"]
     if is_action:
         # Use email address for the GitHub Actions bot
         # https://github.community/t/github-actions-bot-email-address/17204/6
@@ -370,7 +370,9 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
         if not repo:
             repo = get_source_repo(gh_repo, auth=auth)
 
-        run(f"git remote add {remote} https://github.com/{repo}")
+        remotes = run("git remote").splitlines()
+        if remote not in remotes:
+            run(f"git remote add {remote} https://github.com/{repo}")
 
     elif not repo:
         repo = get_repo(remote)
