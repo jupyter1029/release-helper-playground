@@ -52,7 +52,6 @@ def git_repo(tmp_path):
     run("git add .")
     run('git commit -m "foo"')
     run("git tag v0.0.1")
-    run("git checkout -b bar")
     run(f"git remote add upstream {tmp_path}")
     run('git config user.name "snuffy"')
     run('git config user.email "snuffy@sesame.com"')
@@ -148,16 +147,20 @@ def create_npm_package(git_repo):
 
 @fixture
 def py_package(git_repo):
-    return create_python_package(git_repo)
+    pkg = create_python_package(git_repo)
+    main.run("git checkout -b bar foo")
+    return pkg
 
 
 @fixture
 def npm_package(git_repo):
-    return create_npm_package(git_repo)
+    pkg = create_npm_package(git_repo)
+    main.run("git checkout -b bar foo")
+    return pkg
 
 
 def test_get_branch(git_repo):
-    assert main.get_branch() == "bar"
+    assert main.get_branch() == "foo"
 
 
 def test_get_repo(git_repo):
@@ -265,7 +268,7 @@ def test_bump_version(py_package):
         assert main.get_version() == spec
 
 
-def test_prep_env_simple(py_package, tmp_path):
+def test_prep_env_simple(py_package):
     """Standard local run with no env variables."""
     runner = CliRunner()
     result = runner.invoke(main.cli, ["prep-env", "--version-spec", "1.0.1"])
@@ -275,7 +278,7 @@ def test_prep_env_simple(py_package, tmp_path):
     assert "is_prerelease=false" in result.output
 
 
-def test_prep_env_pr(py_package, tmp_path):
+def test_prep_env_pr(py_package):
     """With GITHUB_BASE_REF (Pull Request)"""
     runner = CliRunner()
     env = dict(GITHUB_BASE_REF="foo", VERSION_SPEC="1.0.1")
@@ -313,13 +316,18 @@ def test_prep_env_full(py_package, tmp_path):
         result = runner.invoke(main.cli, ["prep-env"], env=env)
         mock_run.assert_has_calls(
             [
-                call("python setup.py --version", quiet=True),
                 call(
                     'git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"'
                 ),
                 call('git config --global user.name "GitHub Action"'),
                 call("git remote add upstream https://github.com/foo/bar"),
                 call("git fetch upstream foo --tags"),
+                call("git checkout -b release upstream/foo"),
+                call(
+                    "git diff HEAD upstream/foo -- ./github/workflows/check-release.yml"
+                ),
+                call("tbump --non-interactive --only-patch 1.0.1a1"),
+                call("python setup.py --version", quiet=True),
             ]
         )
 
@@ -335,7 +343,7 @@ def test_prep_changelog(py_package):
     runner = CliRunner()
     changelog = py_package / "CHANGELOG.md"
 
-    result = runner.invoke(main.cli, ["prep-env"])
+    result = runner.invoke(main.cli, ["prep-env", "--version-spec", "1.0.1"])
     assert result.exit_code == 0
 
     with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:

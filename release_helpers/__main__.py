@@ -379,7 +379,7 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
 
     # Check out the remote branch so we can push to it
     run(f"git fetch {remote} {branch} --tags")
-    run(f"git checkout -b release {remote}/{branch}")
+    run(f"git checkout -b {branch} {remote}/{branch}")
 
     # Make sure the local workflow file is the same as the remote
     # when running on Actions
@@ -608,7 +608,7 @@ def prep_release(branch, remote, repo, version_cmd, post_version_spec):
     print("\n\n\n**********\n")
     print("Release Prep Complete!")
     print(r"Push to PyPI with \`twine upload dist/*\`")
-    print(f"Push changes with `git push {remote} release --tags`")
+    print(f"Push changes with `git push {remote} {branch} --tags`")
     print("Make a GitHub release")
 
 
