@@ -322,7 +322,7 @@ def test_prep_env_full(py_package, tmp_path):
                 call('git config --global user.name "GitHub Action"'),
                 call("git remote add upstream https://github.com/foo/bar"),
                 call("git fetch upstream foo --tags"),
-                call("git checkout -b release upstream/foo"),
+                call("git checkout -B foo upstream/foo"),
                 call(
                     "git diff HEAD upstream/foo -- ./github/workflows/check-release.yml"
                 ),
@@ -363,7 +363,8 @@ def test_validate_changelog(py_package, tmp_path):
 
     # prep the changelog first
     version_spec = "1.5.1"
-    main.bump_version(version_spec)
+    result = runner.invoke(main.cli, ["prep-env", "--version-spec", version_spec])
+    assert result.exit_code == 0
 
     with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
@@ -393,11 +394,10 @@ def test_prep_python(py_package):
 
 def test_prep_release(py_package):
     runner = CliRunner()
-    # Bump the version
     version_spec = "1.5.1"
-    main.bump_version(version_spec)
     # Prep the env
-    runner.invoke(main.cli, ["prep-env"])
+    result = runner.invoke(main.cli, ["prep-env", "--version-spec", version_spec])
+    assert result.exit_code == 0
     # Create the dist files
     main.run("python -m build .")
     # Finalize the release

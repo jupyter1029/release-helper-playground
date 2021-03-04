@@ -379,7 +379,7 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
 
     # Check out the remote branch so we can push to it
     run(f"git fetch {remote} {branch} --tags")
-    run(f"git checkout -b {branch} {remote}/{branch}")
+    run(f"git checkout -B {branch} {remote}/{branch}")
 
     # Make sure the local workflow file is the same as the remote
     # when running on Actions
