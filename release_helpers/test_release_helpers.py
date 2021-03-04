@@ -5,16 +5,13 @@ import shlex
 import shutil
 import sys
 from pathlib import Path
-from subprocess import run
 from unittest.mock import call
 from unittest.mock import patch
 
 from click.testing import CliRunner
 from pytest import fixture
 
-HERE = osp.abspath(osp.dirname(__file__))
-sys.path.insert(0, osp.dirname(HERE))
-from scripts import __main__ as main
+from release_helpers import __main__ as main
 
 PR_ENTRY = "Mention the required GITHUB_ACCESS_TOKEN [#1](https://github.com/executablebooks/github-activity/pull/1) ([@consideRatio](https://github.com/consideRatio))"
 
@@ -44,27 +41,27 @@ CHANGELOG_ENTRY = f"""
 
 @fixture
 def git_repo(tmp_path):
-    def r(cmd):
-        run(shlex.split(cmd), cwd=tmp_path)
+    prev_dir = os.getcwd()
+    os.chdir(tmp_path)
 
-    r("git init")
-    r("git checkout -b foo")
+    run = main.run
+    run("git init")
+    run("git checkout -b foo")
     gitignore = tmp_path / ".gitignore"
     gitignore.write_text("dist/*\nbuild/*", encoding="utf-8")
-    r("git add .")
-    r('git commit -m "foo"')
-    r("git tag v0.0.1")
-    r("git checkout -b bar")
-    r(f"git remote add upstream {tmp_path}")
-    r('git config user.name "snuffy"')
-    r('git config user.email "snuffy@sesame.com"')
-    return tmp_path
+    run("git add .")
+    run('git commit -m "foo"')
+    run("git tag v0.0.1")
+    run("git checkout -b bar")
+    run(f"git remote add upstream {tmp_path}")
+    run('git config user.name "snuffy"')
+    run('git config user.email "snuffy@sesame.com"')
+
+    yield tmp_path
+    os.chdir(prev_dir)
 
 
 def create_python_package(git_repo):
-    def r(cmd):
-        run(shlex.split(cmd), cwd=git_repo)
-
     setuppy = git_repo / "setup.py"
     setuppy.write_text(
         """
@@ -137,18 +134,15 @@ build-backend = "setuptools.build_meta"
     readme = git_repo / "README.md"
     readme.write_text("Hello from foo project", encoding="utf-8")
 
-    r("git add .")
-    r('git commit -m "initial python package"')
+    main.run("git add .")
+    main.run('git commit -m "initial python package"')
     return git_repo
 
 
 def create_npm_package(git_repo):
-    def r(cmd):
-        run(shlex.split(cmd), cwd=git_repo)
-
-    r("npm init -y")
-    r("git add .")
-    r('git commit -m "initial npm package"')
+    main.run("npm init -y")
+    main.run("git add .")
+    main.run('git commit -m "initial npm package"')
     return git_repo
 
 
@@ -163,42 +157,28 @@ def npm_package(git_repo):
 
 
 def test_get_branch(git_repo):
-    prev_dir = os.getcwd()
-    os.chdir(git_repo)
     assert main.get_branch() == "bar"
-    os.chdir(prev_dir)
-
 
 def test_get_repo(git_repo):
-    prev_dir = os.getcwd()
-    os.chdir(git_repo)
     repo = f"{git_repo.parent.name}/{git_repo.name}"
     assert main.get_repo("upstream") == repo
-    os.chdir(prev_dir)
 
 
 def test_get_version_python(py_package):
-    prev_dir = os.getcwd()
-    os.chdir(py_package)
     assert main.get_version() == "0.0.1"
-    main._bump_version("0.0.2a0")
+    main.bump_version("0.0.2a0")
     assert main.get_version() == "0.0.2a0"
-    os.chdir(prev_dir)
 
 
 def test_get_version_npm(npm_package):
-    prev_dir = os.getcwd()
-    os.chdir(npm_package)
     assert main.get_version() == "1.0.0"
     print(str(py_package))
-    cmd = shlex.split("npm version patch")
-    run(cmd, cwd=npm_package)
+    main.run("npm version patch")
     assert main.get_version() == "1.0.1"
-    os.chdir(prev_dir)
 
 
 def test_format_pr_entry():
-    with patch("scripts.__main__.requests.get") as mocked_get:
+    with patch("release_helpers.__main__.requests.get") as mocked_get:
         resp = main.format_pr_entry("foo", 121, auth="baz")
         mocked_get.assert_called_with(
             "https://api.github.com/repos/foo/pulls/121",
@@ -209,7 +189,7 @@ def test_format_pr_entry():
 
 
 def test_get_source_repo():
-    with patch("scripts.__main__.requests.get") as mocked_get:
+    with patch("release_helpers.__main__.requests.get") as mocked_get:
         resp = main.get_source_repo("foo/bar", auth="baz")
         mocked_get.assert_called_with(
             "https://api.github.com/repos/foo/bar",
@@ -219,11 +199,9 @@ def test_get_source_repo():
 
 def test_get_changelog_entry(py_package):
     changelog = py_package / "CHANGELOG.md"
-    prev_dir = os.getcwd()
-    os.chdir(py_package)
     version = main.get_version()
 
-    with patch("scripts.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         resp = main.get_changelog_entry("foo", "bar/baz", changelog, version)
         mocked_gen.assert_called_with("bar/baz", since="v0.0.1", kind="pr", auth=None)
@@ -231,7 +209,7 @@ def test_get_changelog_entry(py_package):
     assert f"## {version}" in resp
     assert PR_ENTRY in resp
 
-    with patch("scripts.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         resp = main.get_changelog_entry(
             "foo", "bar/baz", changelog, version, resolve_backports=True, auth="bizz"
@@ -241,8 +219,6 @@ def test_get_changelog_entry(py_package):
     assert f"## {version}" in resp
     assert PR_ENTRY in resp
 
-    os.chdir(prev_dir)
-
 
 def test_compute_sha256(py_package):
     sha = "9ff86928054a7791ed023c799702b0fa343f4a371127c43bdf583d4b0ee3a6f3"
@@ -250,14 +226,9 @@ def test_compute_sha256(py_package):
 
 
 def test_create_release_commit(py_package):
-    def r(cmd):
-        run(shlex.split(cmd), cwd=py_package)
-
-    prev_dir = os.getcwd()
-    os.chdir(py_package)
-    main._bump_version("0.0.2a0")
+    main.bump_version("0.0.2a0")
     version = main.get_version()
-    r("python -m build .")
+    main.run("python -m build .")
     shas = main.create_release_commit(version)
     assert "dist/foo-0.0.2a0.tar.gz" in shas
     assert "dist/foo-0.0.2a0-py3-none-any.whl" in shas
@@ -277,65 +248,63 @@ src = "package.json"
 search = '"version": "{current_version}"'
 """
     (py_package / "tbump.toml").write_text(txt, encoding="utf-8")
-    main._bump_version("0.0.2a1")
+    main.bump_version("0.0.2a1")
     version = main.get_version()
-    r("python -m build .")
+    main.run("python -m build .")
     shas = main.create_release_commit(version)
     npm_dist = f"{py_package.name}-0.0.2a1.tgz"
     assert npm_dist in shas
     assert "dist/foo-0.0.2a1.tar.gz" in shas
-    os.chdir(prev_dir)
 
 
 def test_bump_version(py_package):
-    prev_dir = os.getcwd()
-    os.chdir(py_package)
     runner = CliRunner()
-
-    result = runner.invoke(main.cli, ["bump-version", "--version-spec", "1.0.1"])
-    assert main.get_version() == "1.0.1"
-    result = runner.invoke(main.cli, ["bump-version", "--version-spec", "1.0.1a2"])
-    assert main.get_version() == "1.0.1a2"
-    os.chdir(prev_dir)
+    for spec in ["1.0.1", "1.0.1.dev1", "1.0.3a4"]:
+        main.bump_version(spec)
+        assert main.get_version() == spec
 
 
-def test_prep_env(py_package, tmp_path):
-    prev_dir = os.getcwd()
-    os.chdir(py_package)
+def test_prep_env_simple(py_package, tmp_path):
+    """Standard local run with no env variables."""
     runner = CliRunner()
-
-    main._bump_version("1.0.1")
-
-    # Standard local run with no env variables
-    result = runner.invoke(main.cli, ["prep-env"])
+    result = runner.invoke(main.cli, ["prep-env", "--version-spec", "1.0.1"])
     assert result.exit_code == 0
     assert "branch=bar" in result.output
     assert "version=1.0.1" in result.output
     assert "is_prerelease=false" in result.output
 
-    # With GITHUB_BASE_REF (Pull Request)
-    result = runner.invoke(main.cli, ["prep-env"], env=dict(GITHUB_BASE_REF="foo"))
+
+def test_prep_env_pr(py_package, tmp_path):
+    """With GITHUB_BASE_REF (Pull Request)"""
+    runner = CliRunner()
+    env=dict(GITHUB_BASE_REF="foo", VERSION_SPEC="1.0.1")
+    result = runner.invoke(main.cli, ["prep-env"], env=env)
     assert result.exit_code == 0
     assert "branch=foo" in result.output
 
-    # Full GitHub Actions simulation (Push)
-    workflow = Path(f"{HERE}/../.github/workflows/release-check.yml")
+
+def test_prep_env_full(py_package, tmp_path):
+    """Full GitHub Actions simulation (Push)"""
+    runner = CliRunner()
+    version_spec = "1.0.1a1"
+
+    workflow = Path(f"{main.HERE}/../.github/workflows/check-release.yml")
     workflow = workflow.resolve()
     os.makedirs(py_package / ".github/workflows")
     shutil.copy(workflow, py_package / ".github/workflows")
 
     env_file = tmp_path / "github.env"
-    version_spec = "1.0.1a1"
-    main._bump_version(version_spec)
+
     env = dict(
         GITHUB_REF="refs/heads/foo",
-        GITHUB_WORKFLOW="release-check",
+        GITHUB_WORKFLOW="check-release",
         GITHUB_ACTIONS="true",
         GITHUB_REPOSITORY="baz/bar",
+        VERSION_SPEC=version_spec,
         GITHUB_ENV=str(env_file),
     )
-    with patch("scripts.__main__.run") as mock_run, patch(
-        "scripts.__main__.get_source_repo"
+    with patch("release_helpers.__main__.run") as mock_run, patch(
+        "release_helpers.__main__.get_source_repo"
     ) as mocked_get_source_repo:
         # Fake out the version and source repo responses
         mock_run.return_value = version_spec
@@ -360,16 +329,15 @@ def test_prep_env(py_package, tmp_path):
     assert "IS_PRERELEASE=true" in text
     assert "REPOSITORY=foo/bar" in text
 
-    os.chdir(prev_dir)
-
 
 def test_prep_changelog(py_package):
-    prev_dir = os.getcwd()
-    os.chdir(py_package)
     runner = CliRunner()
     changelog = py_package / "CHANGELOG.md"
 
-    with patch("scripts.__main__.generate_activity_md") as mocked_gen:
+    result = runner.invoke(main.cli, ["prep-env"])
+    assert result.exit_code == 0
+
+    with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(main.cli, ["prep-changelog", "--path", changelog])
     assert result.exit_code == 0
@@ -377,28 +345,25 @@ def test_prep_changelog(py_package):
     assert main.START_MARKER in text
     assert main.END_MARKER in text
     assert PR_ENTRY in text
-    os.chdir(prev_dir)
 
 
 def test_validate_changelog(py_package, tmp_path):
-    prev_dir = os.getcwd()
-    os.chdir(py_package)
     runner = CliRunner()
     changelog = py_package / "CHANGELOG.md"
     output = tmp_path / "output.md"
 
     # prep the changelog first
     version_spec = "1.5.1"
-    main._bump_version(version_spec)
+    main.bump_version(version_spec)
 
-    with patch("scripts.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(main.cli, ["prep-changelog", "--path", changelog])
     assert result.exit_code == 0
 
     # then prep the release
-    main._bump_version(version_spec)
-    with patch("scripts.__main__.generate_activity_md") as mocked_gen:
+    main.bump_version(version_spec)
+    with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(
             main.cli, ["validate-changelog", "--path", changelog, "--output", output]
@@ -410,25 +375,18 @@ def test_validate_changelog(py_package, tmp_path):
     assert f"{main.START_MARKER}\n## {version_spec}" in text
     assert main.END_MARKER in text
 
-    os.chdir(prev_dir)
-
 
 def test_prep_python(py_package):
-    prev_dir = os.getcwd()
-    os.chdir(py_package)
     runner = CliRunner()
     result = runner.invoke(main.cli, ["prep-python"])
     assert result.exit_code == 0
-    os.chdir(prev_dir)
 
 
 def test_prep_release(py_package):
-    prev_dir = os.getcwd()
-    os.chdir(py_package)
     runner = CliRunner()
     # Bump the version
     version_spec = "1.5.1"
-    main._bump_version(version_spec)
+    main.bump_version(version_spec)
     # Prep the env
     runner.invoke(main.cli, ["prep-env"])
     # Create the dist files
@@ -438,4 +396,3 @@ def test_prep_release(py_package):
         main.cli, ["prep-release", "--post-version-spec", "1.5.2.dev0"]
     )
     assert result.exit_code == 0
-    os.chdir(prev_dir)

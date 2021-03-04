@@ -43,9 +43,6 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -e .[publishing,test]
-      - name: Bump the Version
-        run: |
-          ${RELEASE_HELPER} bump-version
       - name: Initialize Environment
         run: |
           ${RELEASE_HELPER} prep-env

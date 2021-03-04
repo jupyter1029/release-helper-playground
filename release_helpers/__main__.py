@@ -231,7 +231,7 @@ def create_release_commit(version):
     return shas
 
 
-def _bump_version(version_spec, version_cmd=""):
+def bump_version(version_spec, version_cmd=""):
     """Bump the version"""
     # Look for config files to determine version command if not given
     if not version_cmd:
@@ -276,9 +276,17 @@ def cli():
 
 
 # Extracted common options
-version_options = [
+version_cmd_options = [
     click.option("--version-cmd", envvar="VERSION_CMD", help="The version command.")
 ]
+
+version_spec_options = version_cmd_options + [
+    click.option(
+    "--version-spec",
+    envvar="VERSION_SPEC",
+    required=True,
+    help="The new version specifier.",
+)]
 
 branch_options = [
     click.option("--branch", envvar="BRANCH", help="The target branch."),
@@ -324,26 +332,12 @@ def add_options(options):
 
 
 @cli.command()
-@click.option(
-    "--version-spec",
-    envvar="VERSION_SPEC",
-    required=True,
-    help="The new version specifier.",
-)
-@add_options(version_options)
-def bump_version(version_spec, version_cmd):
-    """Bump the version."""
-    _bump_version(version_spec, version_cmd)
-
-
-@cli.command()
+@add_options(version_spec_options)
 @add_options(branch_options)
 @add_options(auth_options)
 @click.option("--output", envvar="GITHUB_ENV", help="Output file for env variables")
-def prep_env(branch, remote, repo, auth, output):
+def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
     """Prep git and environment variables."""
-    version = get_version()
-    print(f"version={version}")
 
     # Get the branch
     if not branch:
@@ -397,6 +391,12 @@ def prep_env(branch, remote, repo, auth, output):
             print(diff)
             raise ValueError(msg)
 
+    # Bump the version
+    bump_version(version_spec, version_cmd=version_cmd)
+
+    version = get_version()
+    print(f"version={version}")
+
     final_version = re.match("([0-9]+.[0-9]+.[0-9]+)", version).groups()[0]
     is_prerelease = str(final_version != version).lower()
     print(f"is_prerelease={is_prerelease}")
@@ -419,9 +419,6 @@ IS_PRERELEASE={is_prerelease}
 def prep_changelog(branch, remote, repo, auth, path, resolve_backports):
     """Prep the changelog entry."""
     branch = branch or get_branch()
-
-    # Make sure we have the branch fetched
-    run(f"git fetch {remote} {branch}")
 
     # Get the new version
     version = get_version()
@@ -564,7 +561,7 @@ def prep_python(test_cmd):
 
 @cli.command()
 @add_options(branch_options)
-@add_options(version_options)
+@add_options(version_cmd_options)
 @click.option(
     "--post-version-spec",
     envvar="POST_VERSION_SPEC",
@@ -587,14 +584,14 @@ def prep_release(branch, remote, repo, version_cmd, post_version_spec):
 
     # Bump to post version if given
     if post_version_spec:
-        _bump_version(post_version_spec, version_cmd)
+        bump_version(post_version_spec, version_cmd)
         post_version = get_version()
         print(f"Bumped version to {post_version}")
         run(f'git commit -a -m "Bump to {post_version}"')
 
     # Verify the commits and tags
     # https://stackoverflow.com/a/12609622
-    remote_branch = run("git rev-parse --symbolic-full-name --abbrev-ref @{{u}}")
+    remote_branch = run("git rev-parse --symbolic-full-name --abbrev-ref @{u}")
     diff = run(f"git --no-pager diff HEAD {remote_branch}")
 
     # If running in unit test, the branches are one and the same
