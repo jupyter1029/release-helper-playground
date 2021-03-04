@@ -1,4 +1,4 @@
-name: Jupyter Server Release Check
+name: Check Release
 on:
   push:
     branches: '*'

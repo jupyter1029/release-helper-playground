@@ -1,4 +1,4 @@
-name: Jupyter Server Changelog
+name: Prepare Changelog
 on:
   workflow_dispatch:
     inputs:

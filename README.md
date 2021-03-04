@@ -52,6 +52,7 @@ To install the latest release locally, make sure you have
 Release Helpers requires Python >= 3.6.
 
 1. clone the repo
+
    ```bash
    git clone https://github.com/jupyter-server/release-helpers
    ```
@@ -91,7 +92,7 @@ Release Helpers requires Python >= 3.6.
   - [ ] Create [`NPM_TOKEN`](https://docs.npmjs.com/creating-and-viewing-access-tokens) (if needed)
   - [ ] Create [`REPO_ACCESS_TOKEN`](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with `public_repo` access
 - [ ] One publisher adds their `TEST_PYPI_TOKEN` to the source repo's secrets for the release check workflow
-- [ ] Add workflows for `check_release`, `prep_changelog`, and `create_release` - see our examples XXX
+- [ ] Add workflows for `check_release`, `create_changelog`, and `create_release` - see our examples XXX
 - [ ] Start with the test PyPI server in `create-release`, then switch to the production server once it is fully working
 - [ ] If desired, add workflows, change log, and `tbump` support to other active release branches
 
