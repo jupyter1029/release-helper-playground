@@ -282,11 +282,12 @@ version_cmd_options = [
 
 version_spec_options = version_cmd_options + [
     click.option(
-    "--version-spec",
-    envvar="VERSION_SPEC",
-    required=True,
-    help="The new version specifier.",
-)]
+        "--version-spec",
+        envvar="VERSION_SPEC",
+        required=True,
+        help="The new version specifier.",
+    )
+]
 
 branch_options = [
     click.option("--branch", envvar="BRANCH", help="The target branch."),

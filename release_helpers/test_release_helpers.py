@@ -159,6 +159,7 @@ def npm_package(git_repo):
 def test_get_branch(git_repo):
     assert main.get_branch() == "bar"
 
+
 def test_get_repo(git_repo):
     repo = f"{git_repo.parent.name}/{git_repo.name}"
     assert main.get_repo("upstream") == repo
@@ -277,7 +278,7 @@ def test_prep_env_simple(py_package, tmp_path):
 def test_prep_env_pr(py_package, tmp_path):
     """With GITHUB_BASE_REF (Pull Request)"""
     runner = CliRunner()
-    env=dict(GITHUB_BASE_REF="foo", VERSION_SPEC="1.0.1")
+    env = dict(GITHUB_BASE_REF="foo", VERSION_SPEC="1.0.1")
     result = runner.invoke(main.cli, ["prep-env"], env=env)
     assert result.exit_code == 0
     assert "branch=foo" in result.output
