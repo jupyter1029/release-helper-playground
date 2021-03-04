@@ -1,4 +1,4 @@
-# Release Helpers
+# Release Helper
 
 ## Motivation
 
@@ -38,31 +38,31 @@ To install the latest release locally, make sure you have
 [pip installed](https://pip.readthedocs.io/en/stable/installing/) and run:
 
 ```
-    pip install git+https://github.com/jupyter-server/release-helpers
+    pip install git+https://github.com/jupyter-server/release-helper
 ```
 
 ## Usage
 
 ```
-    release-helpers --help
-    release-helpers bump-version 1.2.1
-    release-helpers prep-python
+    release-helper --help
+    release-helper bump-version 1.2.1
+    release-helper prep-python
 ```
 
 ## Development Install
 
-Release Helpers requires Python >= 3.6.
+Release helper requires Python >= 3.6.
 
 1. clone the repo
 
    ```bash
-   git clone https://github.com/jupyter-server/release-helpers
+   git clone https://github.com/jupyter-server/release-helper
    ```
 
 2. do a development install with pip
 
    ```bash
-   cd release-helpers
+   cd release-helper
    python3 -m pip install --editable .[test]
    ```
 
@@ -156,7 +156,7 @@ Release Helpers requires Python >= 3.6.
 
 - npm/lerna support
 
-  - Make an npm package that lives in the `release-helpers` repo
+  - Make an npm package that lives in the `release-helper` repo
   - Find [workspace packages](https://github.com/jupyterlab/jupyterlab/blob/9f50c45b39e289072d4c18519ca29c974c226f69/buildutils/src/utils.ts#L16) for lerna support
   - Publish package(s) to a [verdaccio server](https://github.com/facebook/create-react-app/blob/7e4949a20fc828577fb7626a3262832422f3ae3b/tasks/verdaccio.yaml)
   - Incorporate jupyterlab [publish script](https://github.com/jupyterlab/jupyterlab/blob/532eb4161c01bc7e93e86c4ecb8cd1728e498458/buildutils/src/publish.ts) to pick up `dist-tag` cleanup
@@ -172,7 +172,7 @@ Release Helpers requires Python >= 3.6.
   - Changelog PR text should show the JS package version changes so we can audit them
   - Pass a `--yes` flag to lerna `version` and `publish` when releasing on CI
   - Keep using `bump2version` since we need to use them for the JS packages, but collapse patch release into `jlpm bumpversion patch`
-  - Remove `publish.ts` in favor of the one in `release-helpers`.
+  - Remove `publish.ts` in favor of the one in `release-helper`.
   - Since we're using verdaccio, we don't need to wait for packages to be available to run [`update-core-mode`](https://github.com/jupyterlab/jupyterlab/blob/9f50c45b39e289072d4c18519ca29c974c226f69/buildutils/src/update-core-mode.ts), so we can just run that directly and remove `prepare-python-release`
   - Use the verdaccio server to run the [`release_test`](https://github.com/jupyterlab/jupyterlab/blob/9f50c45b39e289072d4c18519ca29c974c226f69/scripts/release_test.sh) after the npm prep command
   - We then have to update the `jupyterlab/staging/yarn.lock` file to replace the verdaccio registry with the public one.

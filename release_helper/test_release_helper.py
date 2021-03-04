@@ -10,7 +10,8 @@ from unittest.mock import patch
 
 from click.testing import CliRunner
 from pytest import fixture
-from release_helpers import __main__ as main
+
+from release_helper import __main__ as main
 
 PR_ENTRY = "Mention the required GITHUB_ACCESS_TOKEN [#1](https://github.com/executablebooks/github-activity/pull/1) ([@consideRatio](https://github.com/consideRatio))"
 
@@ -183,7 +184,7 @@ def test_get_version_npm(npm_package):
 
 
 def test_format_pr_entry():
-    with patch("release_helpers.__main__.requests.get") as mocked_get:
+    with patch("release_helper.__main__.requests.get") as mocked_get:
         resp = main.format_pr_entry("foo", 121, auth="baz")
         mocked_get.assert_called_with(
             "https://api.github.com/repos/foo/pulls/121",
@@ -194,7 +195,7 @@ def test_format_pr_entry():
 
 
 def test_get_source_repo():
-    with patch("release_helpers.__main__.requests.get") as mocked_get:
+    with patch("release_helper.__main__.requests.get") as mocked_get:
         resp = main.get_source_repo("foo/bar", auth="baz")
         mocked_get.assert_called_with(
             "https://api.github.com/repos/foo/bar",
@@ -206,7 +207,7 @@ def test_get_changelog_entry(py_package):
     changelog = py_package / "CHANGELOG.md"
     version = main.get_version()
 
-    with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         resp = main.get_changelog_entry("foo", "bar/baz", changelog, version)
         mocked_gen.assert_called_with("bar/baz", since="v0.0.1", kind="pr", auth=None)
@@ -214,7 +215,7 @@ def test_get_changelog_entry(py_package):
     assert f"## {version}" in resp
     assert PR_ENTRY in resp
 
-    with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         resp = main.get_changelog_entry(
             "foo", "bar/baz", changelog, version, resolve_backports=True, auth="bizz"
@@ -308,8 +309,8 @@ def test_prep_env_full(py_package, tmp_path):
         VERSION_SPEC=version_spec,
         GITHUB_ENV=str(env_file),
     )
-    with patch("release_helpers.__main__.run") as mock_run, patch(
-        "release_helpers.__main__.get_source_repo"
+    with patch("release_helper.__main__.run") as mock_run, patch(
+        "release_helper.__main__.get_source_repo"
     ) as mocked_get_source_repo:
         # Fake out the version and source repo responses
         mock_run.return_value = version_spec
@@ -347,7 +348,7 @@ def test_prep_changelog(py_package):
     result = runner.invoke(main.cli, ["prep-env", "--version-spec", "1.0.1"])
     assert result.exit_code == 0
 
-    with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(main.cli, ["prep-changelog", "--path", changelog])
     assert result.exit_code == 0
@@ -367,14 +368,14 @@ def test_validate_changelog(py_package, tmp_path):
     result = runner.invoke(main.cli, ["prep-env", "--version-spec", version_spec])
     assert result.exit_code == 0
 
-    with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(main.cli, ["prep-changelog", "--path", changelog])
     assert result.exit_code == 0
 
     # then prep the release
     main.bump_version(version_spec)
-    with patch("release_helpers.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(
             main.cli, ["validate-changelog", "--path", changelog, "--output", output]
