@@ -146,7 +146,7 @@ def get_changelog_entry(
 
     if not md:
         print("No PRs found")
-        return f"## {version}\n## Merged PRs\nNone!"
+        return f"## v{version}\n## Merged PRs\nNone!"
 
     md = md.splitlines()
 
@@ -178,7 +178,7 @@ def get_changelog_entry(
     prs = re.sub(r"\n\* ", "\n- ", prs)
 
     output = f"""
-## {version}
+## v{version}
 
 {full_changelog}
 
