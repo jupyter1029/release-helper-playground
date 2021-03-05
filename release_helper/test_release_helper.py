@@ -124,7 +124,7 @@ def git_repo(tmp_path):
     run("git checkout -b foo")
     gitignore = tmp_path / ".gitignore"
     gitignore.write_text("dist/*\nbuild/*", encoding="utf-8")
-    remote_path = tmp_path.replace(os.sep, "/")
+    remote_path = str(tmp_path).replace(os.sep, "/")
     run("git add .")
     run('git commit -m "foo"')
     run("git tag v0.0.1")
