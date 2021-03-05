@@ -137,6 +137,7 @@ def get_changelog_entry(
     """
     since = run(f"git tag --merged {branch}")
     if not since:
+        since = None
         print(f"No tags found on branch {branch}")
         print(f"Getting all changes to {repo}...")
     else:
