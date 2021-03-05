@@ -121,8 +121,9 @@ Release helper requires Python >= 3.6.
 ## Create-Release Workflow Details
 
 - Manual Github workflow
-- Takes a version spec and optional post version spec
-- Targets the branch selected when starting the workflow
+- Takes a version spec, optional post version spec, and optional branch
+- Targets the branch selected when starting the workflow by default
+- Ensures that the workflow file is the same one as the target branch
 - Bumps version using the same method as the changelog action
 - Prepares the environment using the same method as the changelog action
 - Verifies the changelog entry
@@ -141,7 +142,6 @@ Release helper requires Python >= 3.6.
 - Pushes the commits and tag to the target `branch`
 - Creates a GitHub release for the tag with the changelog entry as the text
 - Publishes the release to PyPI (NPM support coming soon)
-- If the workflow is running from a fork, we compare the fork's workflow file to the one in the source repo to make sure they match.
 
 ## Check-Release Workflow Details
 
