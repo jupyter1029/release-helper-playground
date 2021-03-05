@@ -38,26 +38,35 @@ CHANGELOG_ENTRY = f"""
 [@betatim](https://github.com/search?q=repo%3Aexecutablebooks%2Fgithub-activity+involves%3Abetatim+updated%3A2019-09-01..2019-11-01&type=Issues) | [@choldgraf](https://github.com/search?q=repo%3Aexecutablebooks%2Fgithub-activity+involves%3Acholdgraf+updated%3A2019-09-01..2019-11-01&type=Issues) | [@consideRatio](https://github.com/search?q=repo%3Aexecutablebooks%2Fgithub-activity+involves%3AconsideRatio+updated%3A2019-09-01..2019-11-01&type=Issues)
 """
 
+SETUP_CFG_TEMPLATE = """
+[metadata]
+name = foo
+version = attr: foo.__version__
+description = My package description
+long_description = file: README.md
+long_description_content_type = text/markdown
+license = BSD 3-Clause License
+author = foo
+author_email = foo@foo.com
+
+[options]
+zip_safe = False
+include_package_data = True
+py_modules = foo
+"""
+
 SETUP_PY_TEMPLATE = """
 import setuptools
-import os
-
-setup_args = dict(
-    name="foo",
-    version="0.0.1",
-    url="foo url",
-    author="foo author",
-    author_email="foo email",
-    py_modules=["foo"],
-    description="foo package",
-    long_description="long_description",
-    long_description_content_type="text/markdown",
-    zip_safe=False,
-    include_package_data=True,
-)
-if __name__ == "__main__":
-    setuptools.setup(**setup_args)
+setuptools.setup()
 """
+
+PYPROJECT_TEMPLATE = """
+[build-system]
+requires = ["setuptools>=40.8.0", "wheel"]
+build-backend = "setuptools.build_meta"
+"""
+
+PY_MODULE_TEMPLATE = '__version__ = "0.0.1"'
 
 TBUMP_BASE_TEMPLATE = r"""
 [version]
@@ -74,20 +83,13 @@ tag_template = "v{new_version}"
 
 TBUMP_PY_TEMPLATE = """
 [[file]]
-src = "setup.py"
-search = 'version="{current_version}"'
+src = "foo.py"
 """
 
 TBUMP_NPM_TEMPLATE = """
 [[file]]
 src = "package.json"
 search = '"version": "{current_version}"'
-"""
-
-PYPROJECT_TEMPLATE = """
-[build-system]
-requires = ["setuptools>=40.8.0", "wheel"]
-build-backend = "setuptools.build_meta"
 """
 
 CHANGELOG_TEMPLATE = f"""
@@ -124,6 +126,9 @@ def create_python_package(git_repo):
     setuppy = git_repo / "setup.py"
     setuppy.write_text(SETUP_PY_TEMPLATE, encoding="utf-8")
 
+    setuppy = git_repo / "setup.cfg"
+    setuppy.write_text(SETUP_CFG_TEMPLATE, encoding="utf-8")
+
     tbump = git_repo / "tbump.toml"
     tbump.write_text(TBUMP_BASE_TEMPLATE + TBUMP_PY_TEMPLATE, encoding="utf-8")
 
@@ -134,7 +139,7 @@ def create_python_package(git_repo):
     readme.write_text("Hello from foo project", encoding="utf-8")
 
     foopy = git_repo / "foo.py"
-    foopy.write_text('print("hello, world!")', encoding="utf-8")
+    foopy.write_text(PY_MODULE_TEMPLATE, encoding="utf-8")
 
     changelog = git_repo / "CHANGELOG.md"
     changelog.write_text(CHANGELOG_TEMPLATE, encoding="utf-8")
@@ -323,6 +328,7 @@ def test_prep_env_full(py_package, tmp_path):
                     'git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"'
                 ),
                 call('git config --global user.name "GitHub Action"'),
+                call("git remote"),
                 call("git remote add upstream https://github.com/foo/bar"),
                 call("git fetch upstream foo --tags"),
                 call("git checkout -B foo upstream/foo"),
