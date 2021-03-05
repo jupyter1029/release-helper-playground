@@ -50,17 +50,13 @@ jobs:
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          release-helper prep-changelog
+          release-helper prep-changelog --keep
           git diff
       - name: Make a PR with the changelog entry change
         run: |
           echo "Can't make a PR on the release check"
           echo "Commiting changes locally"
-          git commit -a -m "Commit Changelog"
-      - name: Initialize Environment for release prep
-        run: |
-          release-helper prep-env
-          cat ${GITHUB_ENV}
+          git commit -m "Commit Changelog"
       - name: Run the release prep
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}

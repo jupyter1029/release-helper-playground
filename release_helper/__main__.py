@@ -146,7 +146,7 @@ def get_changelog_entry(
 
     if not md:
         print("No PRs found")
-        return f"## {version}\n## Merged PRs\nNone!"
+        return f"## {version}\nNo merged PRs."
 
     md = md.splitlines()
 
@@ -421,15 +421,17 @@ IS_PRERELEASE={is_prerelease}
 
 @cli.command()
 @add_options(changelog_options)
-def prep_changelog(branch, remote, repo, auth, path, resolve_backports):
+@click.option(
+    "--keep",
+    is_flag=True,
+    help="Whether to keep unstaged files after writing the changelog",
+)
+def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
     """Prep the changelog entry."""
     branch = branch or get_branch()
 
     # Get the new version
     version = get_version()
-
-    ## Check out any files affected by the version bump
-    run("git checkout .")
 
     # Get the existing changelog and run some validation
     changelog = Path(path).read_text(encoding="utf-8")
@@ -458,12 +460,17 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports):
 
     Path(path).write_text(changelog, encoding="utf-8")
 
+    # Stage the changelog
+    run(f"git add {path}")
+
     ## Verify the change for the PR
-    # Only one uncommitted file
-    assert len(run("git diff --numstat").splitlines()) == 1
     # New version entry in the diff
     diff = run("git --no-pager diff")
     assert f"# {version}" in diff
+
+    if not keep:
+        # Checkout any unstaged files from version bump
+        run("git checkout -- .")
 
     # Follow up actions
     print("Changelog Prep Complete!")
