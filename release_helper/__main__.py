@@ -463,7 +463,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports):
     assert len(run("git diff --numstat").splitlines()) == 1
     # New version entry in the diff
     diff = run("git --no-pager diff")
-    assert f"# {version}" in diff
+    assert f"# v{version}" in diff
 
     # Follow up actions
     print("Changelog Prep Complete!")
