@@ -44,6 +44,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: "x64"
+      - name: Set up Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: "12.x"
       - name: Upgrade packaging dependencies
         run: |
           pip install --upgrade pip setuptools wheel --user
