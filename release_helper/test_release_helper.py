@@ -101,7 +101,12 @@ CHANGELOG_TEMPLATE = f"""
 
 @fixture(autouse=True)
 def mock_env_vars():
-    with patch.dict(os.environ, {}, clear=True):
+    """Clear any GitHub related environment variables"""
+    env = os.environ.copy()
+    for key in list(env.keys()):
+        if key.startswith("GITHUB_"):
+            del env[key]
+    with patch.dict(os.environ, env, clear=True):
         yield
 
 
