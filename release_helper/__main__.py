@@ -506,7 +506,7 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
         resolve_backports=resolve_backports,
     )
 
-    if f"# {version}" not in final_entry:
+    if f"# v{version}" not in final_entry:
         raise ValueError(f"Did not find entry for {version}")
 
     final_prs = re.findall(r"\[#(\d+)\]", final_entry)
