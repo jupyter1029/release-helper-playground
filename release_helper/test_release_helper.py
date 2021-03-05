@@ -48,6 +48,7 @@ long_description_content_type = text/markdown
 license = BSD 3-Clause License
 author = foo
 author_email = foo@foo.com
+url = http://foo.com
 
 [options]
 zip_safe = False
@@ -163,7 +164,7 @@ def create_python_package(git_repo):
 
 def create_npm_package(git_repo):
     npm = shutil.which("npm")
-    main.run(f"{npm} init -y", shell=True)
+    main.run(f"{npm} init -y", shell=os.name == "nt")
     main.run("git add .")
     main.run('git commit -m "initial npm package"')
     return git_repo
@@ -202,7 +203,7 @@ def test_get_version_npm(npm_package):
     assert main.get_version() == "1.0.0"
     print(str(py_package))
     npm = shutil.which("npm")
-    main.run(f"{npm} version patch", shell=True)
+    main.run(f"{npm} version patch", shell=os.name == "nt")
     assert main.get_version() == "1.0.1"
 
 
