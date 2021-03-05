@@ -99,6 +99,12 @@ CHANGELOG_TEMPLATE = f"""
 """
 
 
+@fixture(autouse=True)
+def mock_env_vars():
+    with patch.dict(os.environ, {}, clear=True):
+        yield
+
+
 @fixture
 def git_repo(tmp_path):
     prev_dir = os.getcwd()

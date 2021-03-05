@@ -35,7 +35,7 @@ setup_args = dict(
     python_requires=">=3.6",
     entry_points={
         "console_scripts": [
-            "release-helper= release_helper.__main__:main",
+            "release-helper= release_helper.__main__:cli",
         ]
     },
 )
