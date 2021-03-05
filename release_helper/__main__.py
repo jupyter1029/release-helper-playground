@@ -221,7 +221,8 @@ def create_release_commit(version):
     if osp.exists("package.json"):
         data = json.loads(Path("package.json").read_text(encoding="utf-8"))
         if not data.get("private", False):
-            filename = run("npm pack")
+            npm = shutil.which("npm")
+            filename = run(f"{npm} pack")
             sha256 = compute_sha256(filename)
             shas[filename] = sha256
             os.remove(filename)
