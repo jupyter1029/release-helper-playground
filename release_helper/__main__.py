@@ -466,7 +466,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
     assert f"# {version}" in diff
 
     # Stage the changelog
-    run(f"git add {path.replace(os.sep, '/')}")
+    run(f"git add {str(path).replace(os.sep, '/')}")
 
     if not keep:
         # Checkout any unstaged files from version bump
