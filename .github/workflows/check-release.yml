@@ -61,9 +61,9 @@ jobs:
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          release-helper validate-changelog
           release-helper prep-python
           release-helper prep-release
+          release-helper validate-changelog
           cat ${CHANGELOG_OUTPUT}
       - name: Publish PyPI Package
         env:

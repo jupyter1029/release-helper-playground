@@ -119,17 +119,17 @@ def get_source_repo(target, auth=None):
     return data["source"]["full_name"]
 
 
-def get_changelog_entry(
-    branch, repo, path, version, *, auth=None, resolve_backports=False
-):
+def get_changelog_entry(branch, repo, version, *, auth=None, resolve_backports=False):
     """Get a changelog for the changes since the last tag on the given branch.
 
     Parameters
     ----------
     branch : str
         The target branch
-    respository : str
+    respo : str
         The GitHub organization/repo
+    version : str
+        The new version
     auth : str, optional
         The GitHub authorization token
     resolve_backports: bool, optional
@@ -452,7 +452,6 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
     entry = get_changelog_entry(
         f"{remote}/{branch}",
         repo,
-        path,
         version,
         auth=auth,
         resolve_backports=resolve_backports,
@@ -512,7 +511,6 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
     raw_entry = get_changelog_entry(
         f"{remote}/{branch}",
         repo,
-        path,
         version,
         auth=auth,
         resolve_backports=resolve_backports,

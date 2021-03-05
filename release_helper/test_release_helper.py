@@ -235,12 +235,11 @@ def test_get_source_repo():
 
 
 def test_get_changelog_entry(py_package):
-    changelog = py_package / "CHANGELOG.md"
     version = main.get_version()
 
     with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
-        resp = main.get_changelog_entry("foo", "bar/baz", changelog, version)
+        resp = main.get_changelog_entry("foo", "bar/baz", version)
         mocked_gen.assert_called_with("bar/baz", since="v0.0.1", kind="pr", auth=None)
 
     assert f"## {version}" in resp
@@ -249,7 +248,7 @@ def test_get_changelog_entry(py_package):
     with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         resp = main.get_changelog_entry(
-            "foo", "bar/baz", changelog, version, resolve_backports=True, auth="bizz"
+            "foo", "bar/baz", version, resolve_backports=True, auth="bizz"
         )
         mocked_gen.assert_called_with("bar/baz", since="v0.0.1", kind="pr", auth="bizz")
 
