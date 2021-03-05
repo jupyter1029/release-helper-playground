@@ -96,6 +96,10 @@ src = "package.json"
 search = '"version": "{current_version}"'
 """
 
+MANIFEST_TEMPLATE = """
+include *.md
+"""
+
 CHANGELOG_TEMPLATE = f"""
 # Changelog
 {main.START_MARKER}
@@ -156,6 +160,9 @@ def create_python_package(git_repo):
 
     changelog = git_repo / "CHANGELOG.md"
     changelog.write_text(CHANGELOG_TEMPLATE, encoding="utf-8")
+
+    manifest = git_repo / "MANIFEST.in"
+    manifest.write_text(MANIFEST_TEMPLATE, encoding="utf-8")
 
     run("git add .")
     run('git commit -m "initial python package"')
@@ -294,7 +301,7 @@ def test_prep_env_simple(py_package):
     result = runner.invoke(
         main.cli, ["prep-env", "--version-spec", "1.0.1"], env=dict(GITHUB_ACTION="")
     )
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     assert "branch=bar" in result.output
     assert "version=1.0.1" in result.output
     assert "is_prerelease=false" in result.output
@@ -305,7 +312,7 @@ def test_prep_env_pr(py_package):
     runner = CliRunner()
     env = dict(GITHUB_BASE_REF="foo", VERSION_SPEC="1.0.1", GITHUB_ACTION="")
     result = runner.invoke(main.cli, ["prep-env"], env=env)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     assert "branch=foo" in result.output
 
 
@@ -354,7 +361,7 @@ def test_prep_env_full(py_package, tmp_path):
             ]
         )
 
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     text = env_file.read_text(encoding="utf-8")
     assert "BRANCH=foo" in text
     assert f"VERSION={version_spec}" in text
@@ -367,12 +374,12 @@ def test_prep_changelog(py_package):
     changelog = py_package / "CHANGELOG.md"
 
     result = runner.invoke(main.cli, ["prep-env", "--version-spec", "1.0.1"])
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
 
     with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(main.cli, ["prep-changelog", "--path", changelog])
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     text = changelog.read_text(encoding="utf-8")
     assert main.START_MARKER in text
     assert main.END_MARKER in text
@@ -387,12 +394,12 @@ def test_validate_changelog(py_package, tmp_path):
     # prep the changelog first
     version_spec = "1.5.1"
     result = runner.invoke(main.cli, ["prep-env", "--version-spec", version_spec])
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
 
     with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(main.cli, ["prep-changelog", "--path", changelog])
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
 
     # then prep the release
     bump_version(version_spec)
@@ -401,7 +408,7 @@ def test_validate_changelog(py_package, tmp_path):
         result = runner.invoke(
             main.cli, ["validate-changelog", "--path", changelog, "--output", output]
         )
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
 
     assert PR_ENTRY in output.read_text(encoding="utf-8")
     text = changelog.read_text(encoding="utf-8")
@@ -411,8 +418,28 @@ def test_validate_changelog(py_package, tmp_path):
 
 def test_prep_python(py_package):
     runner = CliRunner()
+    pyproject = Path("pyproject.toml")
+    text = orig_text = pyproject.read_text(encoding="utf-8")
+    text += """
+[tool.check-manifest]
+ignore = ["tbump.toml"]
+"""
+    pyproject.write_text(text, encoding="utf-8")
     result = runner.invoke(main.cli, ["prep-python"])
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
+    pyproject.write_text(orig_text, encoding="utf-8")
+
+    setup_cfg = Path("setup.cfg")
+    text = orig_text = setup_cfg.read_text(encoding="utf-8")
+    text += """
+[check-manifest]
+ignore =
+    tbump.toml
+"""
+    setup_cfg.write_text(text, encoding="utf-8")
+    result = runner.invoke(main.cli, ["prep-python"])
+    assert result.exit_code == 0, result.output
+    setup_cfg.write_text(orig_text, encoding="utf-8")
 
 
 def test_prep_release(py_package):
@@ -420,11 +447,11 @@ def test_prep_release(py_package):
     version_spec = "1.5.1"
     # Prep the env
     result = runner.invoke(main.cli, ["prep-env", "--version-spec", version_spec])
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output
     # Create the dist files
     run("python -m build .")
     # Finalize the release
     result = runner.invoke(
         main.cli, ["prep-release", "--post-version-spec", "1.5.2.dev0"]
     )
-    assert result.exit_code == 0
+    assert result.exit_code == 0, result.output

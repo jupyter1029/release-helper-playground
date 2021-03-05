@@ -1,6 +1,0 @@
-build
-click
-github-activity~=0.1
-requests
-tbump
-twine

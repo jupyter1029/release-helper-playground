@@ -550,6 +550,19 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
 )
 def prep_python(test_cmd):
     """Build and check the python dist files."""
+    # Check manifest if config is given
+    found = False
+    if osp.exists("pyproject.toml"):
+        text = Path("pyproject.toml").read_text(encoding="utf-8")
+        if "[tool.check-manifest]" in text:
+            found = True
+    if not found and osp.exists("setup.cfg"):
+        text = Path("setup.cfg").read_text(encoding="utf-8")
+        if "[check-manifest]" in text:
+            found = True
+    if found:
+        run("check-manifest -v")
+
     if not test_cmd:
         name = run("python setup.py --name")
         test_cmd = f'python -c "import {name}"'

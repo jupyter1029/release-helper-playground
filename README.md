@@ -130,7 +130,10 @@ Release helper requires Python >= 3.6.
   - Gets the expected changelog values using `github-activity`
   - Ensures that all PRs are the same between the two
   - Writes the changelog entry out to a file to be used as the GitHub Release text
-- If there is a Python package, builds the wheel and source distributions and makes sure they can be installed and imported in a virtual environment
+- If there is a Python package
+  - Runs [`check-manifest`](https://github.com/mgedmin/check-manifest#configuration) if config is available
+  - Builds the wheel and source distributions
+  - Makes dists can be installed and imported in a virtual environment
 - NPM and lerna support are forthcoming - See TODO
 - Adds a commit that includes the hashes of the dist files
 - Creates an annotated version tag in standard format
