@@ -42,6 +42,7 @@ def get_branch():
 def get_repo(remote):
     """Get the remote repo org and name"""
     url = run(f"git remote get-url {remote}")
+    url = normalize_path(url)
     parts = url.split("/")[-2:]
     if ":" in parts[0]:
         parts[0] = parts[0].split(":")[-1]
@@ -582,7 +583,7 @@ def prep_python(test_cmd):
         # Create the virtual environment, upgrade pip,
         # install, and import
         run(f"python -m venv {env_path}")
-        run(f"{env_path}/bin/python -m pip install -U -q pip")
+        run(f"{env_path}/bin/python -m pip install -U pip")
         run(f"{env_path}/bin/pip install -q {fname}")
         run(f"{env_path}/bin/{test_cmd}")
 
