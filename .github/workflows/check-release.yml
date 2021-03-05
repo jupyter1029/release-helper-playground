@@ -61,7 +61,6 @@ jobs:
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          release-helper bump-version
           release-helper validate-changelog
           release-helper prep-python
           release-helper prep-release

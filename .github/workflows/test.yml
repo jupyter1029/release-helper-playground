@@ -1,4 +1,4 @@
-name: Release Helper Tests
+name: Tests
 on:
   push:
     branches: "*"

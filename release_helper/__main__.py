@@ -137,9 +137,11 @@ def get_changelog_entry(
     """
     since = run(f"git tag --merged {branch}")
     if not since:
-        raise ValueError(f"No tags found on branch {branch}")
-    since = since.splitlines()[-1]
-    print(f"Getting changes to {repo} since {since}...")
+        print(f"No tags found on branch {branch}")
+        print(f"Getting all changes to {repo}...")
+    else:
+        since = since.splitlines()[-1]
+        print(f"Getting changes to {repo} since {since}...")
 
     md = generate_activity_md(repo, since=since, kind="pr", auth=auth)
 
