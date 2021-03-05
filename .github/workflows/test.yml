@@ -73,7 +73,7 @@ jobs:
       - name: Run the tests with coverage
         if: ${{ matrix.os != 'windows' }}
         run: |
-          pytest -vv --cov release_helpers --cov-branch --cov-report term-missing:skip-covered
+          pytest -vv --cov release_helper --cov-branch --cov-report term-missing:skip-covered
       - name: Run the tests on Windows
         if: ${{ matrix.os == 'windows' }}
         run: |
