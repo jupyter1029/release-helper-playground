@@ -460,13 +460,13 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
 
     Path(path).write_text(changelog, encoding="utf-8")
 
-    # Stage the changelog
-    run(f"git add {path}")
-
     ## Verify the change for the PR
     # New version entry in the diff
     diff = run("git --no-pager diff")
     assert f"# {version}" in diff
+
+    # Stage the changelog
+    run(f"git add {path}")
 
     if not keep:
         # Checkout any unstaged files from version bump
