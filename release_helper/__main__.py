@@ -58,6 +58,11 @@ def get_version():
         raise ValueError("No version identifier could be found!")
 
 
+def normalize_path(path):
+    """Normalize a path to use backslashes"""
+    return str(path).replace(os.sep, "/")
+
+
 def format_pr_entry(target, number, auth=None):
     """Format a PR entry in the style used by our changelogs.
 
@@ -466,7 +471,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
     assert f"# {version}" in diff
 
     # Stage the changelog
-    run(f"git add {osp.normpath(path)}")
+    run(f"git add {normalize_path(path)}")
 
     if not keep:
         # Checkout any unstaged files from version bump

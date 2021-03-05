@@ -12,6 +12,9 @@ from click.testing import CliRunner
 from pytest import fixture
 
 from release_helper import __main__ as main
+from release_helper.__main__ import bump_version
+from release_helper.__main__ import normalize_path
+from release_helper.__main__ import run
 
 PR_ENTRY = "Mention the required GITHUB_ACCESS_TOKEN [#1](https://github.com/executablebooks/github-activity/pull/1) ([@consideRatio](https://github.com/consideRatio))"
 
@@ -116,8 +119,6 @@ def git_repo(tmp_path):
     prev_dir = os.getcwd()
     os.chdir(tmp_path)
 
-    run = main.run
-
     run("git init")
     run("git config user.name snuffy")
     run("git config user.email snuffy@sesame.com")
@@ -128,7 +129,7 @@ def git_repo(tmp_path):
     run("git add .")
     run('git commit -m "foo"')
     run("git tag v0.0.1")
-    run(f"git remote add upstream {osp.normpath(tmp_path)}")
+    run(f"git remote add upstream {normalize_path(tmp_path)}")
 
     yield tmp_path
     os.chdir(prev_dir)
@@ -156,30 +157,30 @@ def create_python_package(git_repo):
     changelog = git_repo / "CHANGELOG.md"
     changelog.write_text(CHANGELOG_TEMPLATE, encoding="utf-8")
 
-    main.run("git add .")
-    main.run('git commit -m "initial python package"')
+    run("git add .")
+    run('git commit -m "initial python package"')
     return git_repo
 
 
 def create_npm_package(git_repo):
-    npm = osp.normpath(shutil.which("npm"))
-    main.run(f"{npm} init -y")
-    main.run("git add .")
-    main.run('git commit -m "initial npm package"')
+    npm = normalize_path(shutil.which("npm"))
+    run(f"{npm} init -y")
+    run("git add .")
+    run('git commit -m "initial npm package"')
     return git_repo
 
 
 @fixture
 def py_package(git_repo):
     pkg = create_python_package(git_repo)
-    main.run("git checkout -b bar foo")
+    run("git checkout -b bar foo")
     return pkg
 
 
 @fixture
 def npm_package(git_repo):
     pkg = create_npm_package(git_repo)
-    main.run("git checkout -b bar foo")
+    run("git checkout -b bar foo")
     return pkg
 
 
@@ -194,15 +195,15 @@ def test_get_repo(git_repo):
 
 def test_get_version_python(py_package):
     assert main.get_version() == "0.0.1"
-    main.bump_version("0.0.2a0")
+    bump_version("0.0.2a0")
     assert main.get_version() == "0.0.2a0"
 
 
 def test_get_version_npm(npm_package):
     assert main.get_version() == "1.0.0"
     print(str(py_package))
-    npm = osp.normpath(shutil.which("npm"))
-    main.run(f"{npm} version patch")
+    npm = normalize_path(shutil.which("npm"))
+    run(f"{npm} version patch")
     assert main.get_version() == "1.0.1"
 
 
@@ -254,12 +255,12 @@ def test_compute_sha256(py_package):
 
 
 def test_create_release_commit(py_package):
-    main.bump_version("0.0.2a0")
+    bump_version("0.0.2a0")
     version = main.get_version()
-    main.run("python -m build .")
+    run("python -m build .")
     shas = main.create_release_commit(version)
-    assert osp.normpath("dist/foo-0.0.2a0.tar.gz") in shas
-    assert osp.normpath("dist/foo-0.0.2a0-py3-none-any.whl") in shas
+    assert normalize_path("dist/foo-0.0.2a0.tar.gz") in shas
+    assert normalize_path("dist/foo-0.0.2a0-py3-none-any.whl") in shas
     shutil.rmtree(py_package / "dist")
 
     # Add an npm package and test with that
@@ -272,18 +273,18 @@ def test_create_release_commit(py_package):
     txt = (py_package / "tbump.toml").read_text(encoding="utf-8")
     txt += TBUMP_NPM_TEMPLATE
     (py_package / "tbump.toml").write_text(txt, encoding="utf-8")
-    main.bump_version("0.0.2a1")
+    bump_version("0.0.2a1")
     version = main.get_version()
-    main.run("python -m build .")
+    run("python -m build .")
     shas = main.create_release_commit(version)
     assert len(shas) == 3
-    assert osp.normpath("dist/foo-0.0.2a1.tar.gz") in shas
+    assert normalize_path("dist/foo-0.0.2a1.tar.gz") in shas
 
 
 def test_bump_version(py_package):
     runner = CliRunner()
     for spec in ["1.0.1", "1.0.1.dev1", "1.0.3a4"]:
-        main.bump_version(spec)
+        bump_version(spec)
         assert main.get_version() == spec
 
 
@@ -394,7 +395,7 @@ def test_validate_changelog(py_package, tmp_path):
     assert result.exit_code == 0
 
     # then prep the release
-    main.bump_version(version_spec)
+    bump_version(version_spec)
     with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(
@@ -421,7 +422,7 @@ def test_prep_release(py_package):
     result = runner.invoke(main.cli, ["prep-env", "--version-spec", version_spec])
     assert result.exit_code == 0
     # Create the dist files
-    main.run("python -m build .")
+    run("python -m build .")
     # Finalize the release
     result = runner.invoke(
         main.cli, ["prep-release", "--post-version-spec", "1.5.2.dev0"]
