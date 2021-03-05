@@ -125,11 +125,10 @@ def git_repo(tmp_path):
     run("git checkout -b foo")
     gitignore = tmp_path / ".gitignore"
     gitignore.write_text("dist/*\nbuild/*", encoding="utf-8")
-    remote_path = str(tmp_path).replace(os.sep, "/")
     run("git add .")
     run('git commit -m "foo"')
     run("git tag v0.0.1")
-    run(f"git remote add upstream {remote_path}")
+    run(f"git remote add upstream {osp.normpath(tmp_path)}")
 
     yield tmp_path
     os.chdir(prev_dir)
@@ -163,7 +162,7 @@ def create_python_package(git_repo):
 
 
 def create_npm_package(git_repo):
-    npm = str(shutil.which("npm")).replace(os.sep, "/")
+    npm = osp.normpath(shutil.which("npm"))
     main.run(f"{npm} init -y")
     main.run("git add .")
     main.run('git commit -m "initial npm package"')
@@ -202,7 +201,7 @@ def test_get_version_python(py_package):
 def test_get_version_npm(npm_package):
     assert main.get_version() == "1.0.0"
     print(str(py_package))
-    npm = str(shutil.which("npm")).replace(os.sep, "/")
+    npm = osp.normpath(shutil.which("npm"))
     main.run(f"{npm} version patch")
     assert main.get_version() == "1.0.1"
 
@@ -259,8 +258,8 @@ def test_create_release_commit(py_package):
     version = main.get_version()
     main.run("python -m build .")
     shas = main.create_release_commit(version)
-    assert "dist/foo-0.0.2a0.tar.gz".replace("/", os.sep) in shas
-    assert "dist/foo-0.0.2a0-py3-none-any.whl".replace("/", os.sep) in shas
+    assert osp.normpath("dist/foo-0.0.2a0.tar.gz") in shas
+    assert osp.normpath("dist/foo-0.0.2a0-py3-none-any.whl") in shas
     shutil.rmtree(py_package / "dist")
 
     # Add an npm package and test with that
@@ -278,7 +277,7 @@ def test_create_release_commit(py_package):
     main.run("python -m build .")
     shas = main.create_release_commit(version)
     assert len(shas) == 3
-    assert "dist/foo-0.0.2a1.tar.gz".replace("/", os.sep) in shas
+    assert osp.normpath("dist/foo-0.0.2a1.tar.gz") in shas
 
 
 def test_bump_version(py_package):
