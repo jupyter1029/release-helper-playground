@@ -579,14 +579,14 @@ def prep_python(test_cmd):
     # Create venvs to install sdist and wheel
     # run the test command in the venv
     for asset in ["gz", "whl"]:
-        env_name = f"./test_{asset}"
-        fname = glob(f"dist/*.{asset}")[0]
+        env_path = normalize_path(osp.abspath(f"./test_{asset}"))
+        fname = normalize_path(glob(f"dist/*.{asset}")[0])
         # Create the virtual environment, upgrade pip,
         # install, and import
-        run(f"python -m venv {env_name}")
-        run(f"{env_name}/bin/python -m pip install -U -q pip")
-        run(f"{env_name}/bin/pip install -q {fname}")
-        run(f"{env_name}/bin/{test_cmd}")
+        run(f"python -m venv {env_path}")
+        run(f"{env_path}/bin/python -m pip install -U -q pip")
+        run(f"{env_path}/bin/pip install -q {fname}")
+        run(f"{env_path}/bin/{test_cmd}")
 
 
 @cli.command()
