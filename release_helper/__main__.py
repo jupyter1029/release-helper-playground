@@ -579,13 +579,17 @@ def prep_python(test_cmd):
     # run the test command in the venv
     for asset in ["gz", "whl"]:
         env_path = normalize_path(osp.abspath(f"./test_{asset}"))
+        if os.name == "nt":
+            bin_path = f"{env_path}/Scripts/"
+        else:
+            bin_path = f"{env_path}/bin"
         fname = normalize_path(glob(f"dist/*.{asset}")[0])
         # Create the virtual environment, upgrade pip,
         # install, and import
         run(f"python -m venv {env_path}")
-        run(f"{env_path}/bin/python -m pip install -U pip")
-        run(f"{env_path}/bin/pip install -q {fname}")
-        run(f"{env_path}/bin/{test_cmd}")
+        run(f"{bin_path}/python -m pip install -U pip")
+        run(f"{bin_path}/pip install -q {fname}")
+        run(f"{bin_path}/{test_cmd}")
 
 
 @cli.command()
@@ -625,8 +629,10 @@ def prep_release(branch, remote, repo, version_cmd, post_version_spec):
 
     # If running in unit test, the branches are one and the same
     # Since the remote is a local directory
+    print("getting url")
     url = run(f"git remote get-url {remote}")
-    if url != os.getcwd():
+    print("got url", url)
+    if normalize_path(url) != normalize_path(os.getcwd()):
         assert version in diff
 
     tags = run("git --no-pager tag").splitlines()
