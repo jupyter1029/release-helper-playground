@@ -2,7 +2,7 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
-## v0.0.1
+## 0.0.1
 
 Initial Version
 

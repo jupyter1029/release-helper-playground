@@ -146,7 +146,7 @@ def get_changelog_entry(
 
     if not md:
         print("No PRs found")
-        return f"## v{version}\n## Merged PRs\nNone!"
+        return f"## {version}\n## Merged PRs\nNone!"
 
     md = md.splitlines()
 
@@ -178,7 +178,7 @@ def get_changelog_entry(
     prs = re.sub(r"\n\* ", "\n- ", prs)
 
     output = f"""
-## v{version}
+## {version}
 
 {full_changelog}
 
@@ -204,7 +204,7 @@ def compute_sha256(path):
 
 def create_release_commit(version):
     """Generate a release commit that has the sha256 digests for the release files."""
-    cmd = f'git commit -am "Publish v{version}" -m "SHA256 hashes:"'
+    cmd = f'git commit -am "Publish {version}" -m "SHA256 hashes:"'
 
     shas = dict()
 
@@ -463,7 +463,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports):
     assert len(run("git diff --numstat").splitlines()) == 1
     # New version entry in the diff
     diff = run("git --no-pager diff")
-    assert f"# v{version}" in diff
+    assert f"# {version}" in diff
 
     # Follow up actions
     print("Changelog Prep Complete!")
@@ -506,7 +506,7 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
         resolve_backports=resolve_backports,
     )
 
-    if f"# v{version}" not in final_entry:
+    if f"# {version}" not in final_entry:
         raise ValueError(f"Did not find entry for {version}")
 
     final_prs = re.findall(r"\[#(\d+)\]", final_entry)
@@ -584,7 +584,7 @@ def prep_release(branch, remote, repo, version_cmd, post_version_spec):
     create_release_commit(version)
 
     # Create the annotated release tag
-    tag_name = f"v{version}"
+    tag_name = f"{version}"
     run(f'git tag {tag_name} -a -m "Release {tag_name}"')
 
     # Bump to post version if given
