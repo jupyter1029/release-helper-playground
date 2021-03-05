@@ -163,7 +163,7 @@ def create_python_package(git_repo):
 
 
 def create_npm_package(git_repo):
-    npm = shutil.which("npm").replace(os.sep, "/")
+    npm = str(shutil.which("npm")).replace(os.sep, "/")
     main.run(f"{npm} init -y")
     main.run("git add .")
     main.run('git commit -m "initial npm package"')
@@ -202,7 +202,7 @@ def test_get_version_python(py_package):
 def test_get_version_npm(npm_package):
     assert main.get_version() == "1.0.0"
     print(str(py_package))
-    npm = shutil.which("npm").replace(os.sep, "/")
+    npm = str(shutil.which("npm")).replace(os.sep, "/")
     main.run(f"{npm} version patch")
     assert main.get_version() == "1.0.1"
 
