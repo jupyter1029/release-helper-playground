@@ -219,6 +219,7 @@ def create_release_commit(version):
             raise ValueError("Missing distribution files")
 
         for path in files:
+            path = normalize_path(path)
             sha256 = compute_sha256(path)
             shas[path] = sha256
             cmd += f' -m "{path}: {sha256}"'
@@ -226,8 +227,8 @@ def create_release_commit(version):
     if osp.exists("package.json"):
         data = json.loads(Path("package.json").read_text(encoding="utf-8"))
         if not data.get("private", False):
-            npm = shutil.which("npm")
-            filename = run(f"{npm} pack")
+            npm = normalize_path(shutil.which("npm"))
+            filename = normalize_path(run(f"{npm} pack"))
             sha256 = compute_sha256(filename)
             shas[filename] = sha256
             os.remove(filename)
