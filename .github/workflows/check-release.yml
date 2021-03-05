@@ -57,6 +57,10 @@ jobs:
           echo "Can't make a PR on the release check"
           echo "Commiting changes locally"
           git commit -a -m "Commit Changelog"
+      - name: Initialize Environment for release prep
+        run: |
+          release-helper prep-env
+          cat ${GITHUB_ENV}
       - name: Run the release prep
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}

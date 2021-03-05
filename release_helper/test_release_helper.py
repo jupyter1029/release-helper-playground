@@ -245,7 +245,7 @@ def test_get_changelog_entry(py_package):
         )
         mocked_gen.assert_called_with("bar/baz", since="v0.0.1", kind="pr", auth="bizz")
 
-    assert f"## {version}" in resp
+    assert f"## v{version}" in resp
     assert PR_ENTRY in resp
 
 
@@ -404,7 +404,7 @@ def test_validate_changelog(py_package, tmp_path):
 
     assert PR_ENTRY in output.read_text(encoding="utf-8")
     text = changelog.read_text(encoding="utf-8")
-    assert f"{main.START_MARKER}\n## {version_spec}" in text
+    assert f"{main.START_MARKER}\n## v{version_spec}" in text
     assert main.END_MARKER in text
 
 
