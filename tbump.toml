@@ -11,7 +11,3 @@ tag_template = "v{new_version}"
 
 [[file]]
 src = "release_helper/__init__.py"
-
-[[file]]
-src = "setup.py"
-search = 'version="{current_version}"'
