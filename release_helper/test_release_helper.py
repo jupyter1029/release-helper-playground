@@ -11,10 +11,10 @@ from unittest.mock import patch
 from click.testing import CliRunner
 from pytest import fixture
 
-from release_helper import __main__ as main
-from release_helper.__main__ import bump_version
-from release_helper.__main__ import normalize_path
-from release_helper.__main__ import run
+from release_helper import cli
+from release_helper.cli import bump_version
+from release_helper.cli import normalize_path
+from release_helper.cli import run
 
 PR_ENTRY = "Mention the required GITHUB_ACCESS_TOKEN [#1](https://github.com/executablebooks/github-activity/pull/1) ([@consideRatio](https://github.com/consideRatio))"
 
@@ -102,8 +102,8 @@ include *.md
 
 CHANGELOG_TEMPLATE = f"""
 # Changelog
-{main.START_MARKER}
-{main.END_MARKER}
+{cli.START_MARKER}
+{cli.END_MARKER}
 """
 
 
@@ -192,31 +192,31 @@ def npm_package(git_repo):
 
 
 def test_get_branch(git_repo):
-    assert main.get_branch() == "foo"
+    assert cli.get_branch() == "foo"
 
 
 def test_get_repo(git_repo):
     repo = f"{git_repo.parent.name}/{git_repo.name}"
-    assert main.get_repo("upstream") == repo
+    assert cli.get_repo("upstream") == repo
 
 
 def test_get_version_python(py_package):
-    assert main.get_version() == "0.0.1"
+    assert cli.get_version() == "0.0.1"
     bump_version("0.0.2a0")
-    assert main.get_version() == "0.0.2a0"
+    assert cli.get_version() == "0.0.2a0"
 
 
 def test_get_version_npm(npm_package):
-    assert main.get_version() == "1.0.0"
+    assert cli.get_version() == "1.0.0"
     print(str(py_package))
     npm = normalize_path(shutil.which("npm"))
     run(f"{npm} version patch")
-    assert main.get_version() == "1.0.1"
+    assert cli.get_version() == "1.0.1"
 
 
 def test_format_pr_entry():
-    with patch("release_helper.__main__.requests.get") as mocked_get:
-        resp = main.format_pr_entry("foo", 121, auth="baz")
+    with patch("release_helper.cli.requests.get") as mocked_get:
+        resp = cli.format_pr_entry("foo", 121, auth="baz")
         mocked_get.assert_called_with(
             "https://api.github.com/repos/foo/pulls/121",
             headers={"Authorization": "token baz"},
@@ -226,8 +226,8 @@ def test_format_pr_entry():
 
 
 def test_get_source_repo():
-    with patch("release_helper.__main__.requests.get") as mocked_get:
-        resp = main.get_source_repo("foo/bar", auth="baz")
+    with patch("release_helper.cli.requests.get") as mocked_get:
+        resp = cli.get_source_repo("foo/bar", auth="baz")
         mocked_get.assert_called_with(
             "https://api.github.com/repos/foo/bar",
             headers={"Authorization": "token baz"},
@@ -235,19 +235,19 @@ def test_get_source_repo():
 
 
 def test_get_changelog_entry(py_package):
-    version = main.get_version()
+    version = cli.get_version()
 
-    with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
-        resp = main.get_changelog_entry("foo", "bar/baz", version)
+        resp = cli.get_changelog_entry("foo", "bar/baz", version)
         mocked_gen.assert_called_with("bar/baz", since="v0.0.1", kind="pr", auth=None)
 
     assert f"## {version}" in resp
     assert PR_ENTRY in resp
 
-    with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
-        resp = main.get_changelog_entry(
+        resp = cli.get_changelog_entry(
             "foo", "bar/baz", version, resolve_backports=True, auth="bizz"
         )
         mocked_gen.assert_called_with("bar/baz", since="v0.0.1", kind="pr", auth="bizz")
@@ -257,14 +257,14 @@ def test_get_changelog_entry(py_package):
 
 
 def test_compute_sha256(py_package):
-    assert len(main.compute_sha256(py_package / "CHANGELOG.md")) == 64
+    assert len(cli.compute_sha256(py_package / "CHANGELOG.md")) == 64
 
 
 def test_create_release_commit(py_package):
     bump_version("0.0.2a0")
-    version = main.get_version()
+    version = cli.get_version()
     run("python -m build .")
-    shas = main.create_release_commit(version)
+    shas = cli.create_release_commit(version)
     assert normalize_path("dist/foo-0.0.2a0.tar.gz") in shas
     assert normalize_path("dist/foo-0.0.2a0-py3-none-any.whl") in shas
     shutil.rmtree(py_package / "dist")
@@ -280,9 +280,9 @@ def test_create_release_commit(py_package):
     txt += TBUMP_NPM_TEMPLATE
     (py_package / "tbump.toml").write_text(txt, encoding="utf-8")
     bump_version("0.0.2a1")
-    version = main.get_version()
+    version = cli.get_version()
     run("python -m build .")
-    shas = main.create_release_commit(version)
+    shas = cli.create_release_commit(version)
     assert len(shas) == 3
     assert normalize_path("dist/foo-0.0.2a1.tar.gz") in shas
 
@@ -291,14 +291,14 @@ def test_bump_version(py_package):
     runner = CliRunner()
     for spec in ["1.0.1", "1.0.1.dev1", "1.0.3a4"]:
         bump_version(spec)
-        assert main.get_version() == spec
+        assert cli.get_version() == spec
 
 
 def test_prep_env_simple(py_package):
     """Standard local run with no env variables."""
     runner = CliRunner()
     result = runner.invoke(
-        main.cli, ["prep-env", "--version-spec", "1.0.1"], env=dict(GITHUB_ACTION="")
+        cli.main, ["prep-env", "--version-spec", "1.0.1"], env=dict(GITHUB_ACTION="")
     )
     assert result.exit_code == 0, result.output
     assert "branch=bar" in result.output
@@ -310,7 +310,7 @@ def test_prep_env_pr(py_package):
     """With GITHUB_BASE_REF (Pull Request)"""
     runner = CliRunner()
     env = dict(GITHUB_BASE_REF="foo", VERSION_SPEC="1.0.1", GITHUB_ACTION="")
-    result = runner.invoke(main.cli, ["prep-env"], env=env)
+    result = runner.invoke(cli.main, ["prep-env"], env=env)
     assert result.exit_code == 0, result.output
     assert "branch=foo" in result.output
 
@@ -320,7 +320,7 @@ def test_prep_env_full(py_package, tmp_path):
     runner = CliRunner()
     version_spec = "1.0.1a1"
 
-    workflow = Path(f"{main.HERE}/../.github/workflows/check-release.yml")
+    workflow = Path(f"{cli.HERE}/../.github/workflows/check-release.yml")
     workflow = workflow.resolve()
     os.makedirs(py_package / ".github/workflows")
     shutil.copy(workflow, py_package / ".github/workflows")
@@ -335,13 +335,13 @@ def test_prep_env_full(py_package, tmp_path):
         VERSION_SPEC=version_spec,
         GITHUB_ENV=str(env_file),
     )
-    with patch("release_helper.__main__.run") as mock_run, patch(
-        "release_helper.__main__.get_source_repo"
+    with patch("release_helper.cli.run") as mock_run, patch(
+        "release_helper.cli.get_source_repo"
     ) as mocked_get_source_repo:
         # Fake out the version and source repo responses
         mock_run.return_value = version_spec
         mocked_get_source_repo.return_value = "foo/bar"
-        result = runner.invoke(main.cli, ["prep-env"], env=env)
+        result = runner.invoke(cli.main, ["prep-env"], env=env)
         mock_run.assert_has_calls(
             [
                 call(
@@ -372,16 +372,16 @@ def test_prep_changelog(py_package):
     runner = CliRunner()
     changelog = py_package / "CHANGELOG.md"
 
-    result = runner.invoke(main.cli, ["prep-env", "--version-spec", "1.0.1"])
+    result = runner.invoke(cli.main, ["prep-env", "--version-spec", "1.0.1"])
     assert result.exit_code == 0, result.output
 
-    with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
-        result = runner.invoke(main.cli, ["prep-changelog", "--path", changelog])
+        result = runner.invoke(cli.main, ["prep-changelog", "--path", changelog])
     assert result.exit_code == 0, result.output
     text = changelog.read_text(encoding="utf-8")
-    assert main.START_MARKER in text
-    assert main.END_MARKER in text
+    assert cli.START_MARKER in text
+    assert cli.END_MARKER in text
     assert PR_ENTRY in text
 
 
@@ -392,27 +392,27 @@ def test_validate_changelog(py_package, tmp_path):
 
     # prep the changelog first
     version_spec = "1.5.1"
-    result = runner.invoke(main.cli, ["prep-env", "--version-spec", version_spec])
+    result = runner.invoke(cli.main, ["prep-env", "--version-spec", version_spec])
     assert result.exit_code == 0, result.output
 
-    with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
-        result = runner.invoke(main.cli, ["prep-changelog", "--path", changelog])
+        result = runner.invoke(cli.main, ["prep-changelog", "--path", changelog])
     assert result.exit_code == 0, result.output
 
     # then prep the release
     bump_version(version_spec)
-    with patch("release_helper.__main__.generate_activity_md") as mocked_gen:
+    with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(
-            main.cli, ["validate-changelog", "--path", changelog, "--output", output]
+            cli.main, ["validate-changelog", "--path", changelog, "--output", output]
         )
     assert result.exit_code == 0, result.output
 
     assert PR_ENTRY in output.read_text(encoding="utf-8")
     text = changelog.read_text(encoding="utf-8")
-    assert f"{main.START_MARKER}\n## {version_spec}" in text
-    assert main.END_MARKER in text
+    assert f"{cli.START_MARKER}\n## {version_spec}" in text
+    assert cli.END_MARKER in text
 
 
 def test_prep_python_pyproject(py_package):
@@ -424,7 +424,7 @@ def test_prep_python_pyproject(py_package):
 ignore = ["tbump.toml"]
 """
     pyproject.write_text(text, encoding="utf-8")
-    result = runner.invoke(main.cli, ["prep-python"])
+    result = runner.invoke(cli.main, ["prep-python"])
     assert result.exit_code == 0, result.output
     pyproject.write_text(orig_text, encoding="utf-8")
 
@@ -440,7 +440,7 @@ ignore =
     tbump.toml
 """
     setup_cfg.write_text(text, encoding="utf-8")
-    result = runner.invoke(main.cli, ["prep-python"])
+    result = runner.invoke(cli.main, ["prep-python"])
     assert result.exit_code == 0, result.output
     setup_cfg.write_text(orig_text, encoding="utf-8")
 
@@ -449,12 +449,12 @@ def test_prep_release(py_package):
     runner = CliRunner()
     version_spec = "1.5.1"
     # Prep the env
-    result = runner.invoke(main.cli, ["prep-env", "--version-spec", version_spec])
+    result = runner.invoke(cli.main, ["prep-env", "--version-spec", version_spec])
     assert result.exit_code == 0, result.output
     # Create the dist files
     run("python -m build .")
     # Finalize the release
     result = runner.invoke(
-        main.cli, ["prep-release", "--post-version-spec", "1.5.2.dev0"]
+        cli.main, ["prep-release", "--post-version-spec", "1.5.2.dev0"]
     )
     assert result.exit_code == 0, result.output
