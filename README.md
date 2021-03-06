@@ -47,38 +47,8 @@ To install the latest release locally, make sure you have
 
 ```
     release-helper --help
-    release-helper bump-version 1.2.1
-    release-helper prep-python
+    release-helper prep-python --help
 ```
-
-## Development Install
-
-Release helper requires Python >= 3.6.
-
-1. clone the repo
-
-   ```bash
-   git clone https://github.com/jupyter-server/release-helper
-   ```
-
-2. do a development install with pip
-
-   ```bash
-   cd release-helper
-   python3 -m pip install --editable .[test]
-   ```
-
-3. set up pre-commit hooks for automatic code formatting, etc.
-
-   ```bash
-   pre-commit install
-   ```
-
-   You can also invoke the pre-commit hook manually at any time with
-
-   ```bash
-   pre-commit run
-   ```
 
 ## Checklist for Adoption
 
