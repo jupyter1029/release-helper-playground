@@ -461,16 +461,33 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
     )
 
     # Insert the entry into the file
-    template = f"{START_MARKER}\n{entry}\n{END_MARKER}\n"
-    changelog = changelog.replace(END_MARKER + "\n", "")
-    changelog = changelog.replace(START_MARKER, template)
+    # Test if we are augmenting an existing changelog entry (for new PRs)
+    # Preserve existing PR entries since we may have formatted them
+    new_entry = f"{START_MARKER}\n\n{entry}\n\n{END_MARKER}\n"
+    prev_entry = changelog[changelog.index(START_MARKER) : changelog.index(END_MARKER)]
+
+    if f"# {version}" in prev_entry:
+        lines = new_entry.splitlines()
+        old_lines = prev_entry.splitlines()
+        for ind, line in enumerate(lines):
+            pr = re.search(r"\[#\d+\]", line)
+            if not pr:
+                continue
+            for old_line in prev_entry.splitlines():
+                if pr.group() in old_line:
+                    lines[ind] = old_line
+        changelog = changelog.replace(prev_entry, "\n".join(lines))
+    else:
+        changelog = changelog.replace(END_MARKER + "\n", "")
+        changelog = changelog.replace(START_MARKER, new_entry)
 
     Path(path).write_text(changelog, encoding="utf-8")
 
     ## Verify the change for the PR
     # New version entry in the diff
     diff = run("git --no-pager diff")
-    assert f"# {version}" in diff, diff
+    if f"# {version}" not in prev_entry:
+        assert f"# {version}" in diff, diff
 
     # Stage the changelog
     run(f"git add {normalize_path(path)}")

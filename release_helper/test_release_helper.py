@@ -387,6 +387,32 @@ def test_prep_changelog(py_package):
     assert PR_ENTRY in text
 
 
+def test_prep_changelog_existing(py_package):
+    runner = CliRunner()
+    changelog = py_package / "CHANGELOG.md"
+
+    result = runner.invoke(cli.main, ["prep-env", "--version-spec", "1.0.1"])
+    assert result.exit_code == 0, result.output
+
+    with patch("release_helper.cli.generate_activity_md") as mocked_gen:
+        mocked_gen.return_value = CHANGELOG_ENTRY
+        result = runner.invoke(
+            cli.main, ["prep-changelog", "--path", changelog, "--keep"]
+        )
+    assert result.exit_code == 0, result.output
+    text = changelog.read_text(encoding="utf-8")
+    text = text.replace("defining contributions", "Definining contributions")
+    changelog.write_text(text, encoding="utf-8")
+
+    with patch("release_helper.cli.generate_activity_md") as mocked_gen:
+        mocked_gen.return_value = CHANGELOG_ENTRY
+        result = runner.invoke(cli.main, ["prep-changelog", "--path", changelog])
+    assert result.exit_code == 0, result.output
+    text = changelog.read_text(encoding="utf-8")
+    assert "Definining contributions" in text, text
+    assert not "defining contributions" in text, text
+
+
 def test_validate_changelog(py_package, tmp_path):
     runner = CliRunner()
     changelog = py_package / "CHANGELOG.md"
@@ -413,7 +439,7 @@ def test_validate_changelog(py_package, tmp_path):
 
     assert PR_ENTRY in output.read_text(encoding="utf-8")
     text = changelog.read_text(encoding="utf-8")
-    assert f"{cli.START_MARKER}\n## {version_spec}" in text
+    assert f"{cli.START_MARKER}\n\n## {version_spec}" in text
     assert cli.END_MARKER in text
 
 
