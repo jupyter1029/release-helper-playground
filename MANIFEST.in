@@ -1,2 +1,3 @@
 include *.md
+recursive-include screenshots *.png
 include LICENSE
