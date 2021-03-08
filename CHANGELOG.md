@@ -6,7 +6,7 @@
 
 ([Full Changelog](https://github.com/jovyan123-playground/release-helpers-playground/compare/v0.0.1...b222ddbf31522e627eb62ba38a061deb05f335d4))
 
-- add screenshots and remove brittle git checks [#10](https://github.com/jovyan123-playground/release-helpers-playground/pull/10) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Add screenshots and remove brittle git checks [#10](https://github.com/jovyan123-playground/release-helpers-playground/pull/10) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 - Automated Changelog for 0.0.2 on main [#9](https://github.com/jovyan123-playground/release-helpers-playground/pull/9) ([@github-actions](https://github.com/github-actions))
 - Fix duplicate end marker [#8](https://github.com/jovyan123-playground/release-helpers-playground/pull/8) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 - Automated Changelog for 0.0.2 on main [#7](https://github.com/jovyan123-playground/release-helpers-playground/pull/7) ([@github-actions](https://github.com/github-actions))
