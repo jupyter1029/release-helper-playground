@@ -5,9 +5,9 @@
 
 ([Full Changelog](https://github.com/jovyan123-playground/release-helpers-playground/compare/v0.0.1...006189020470401047d35b8e9c0ab47094317f48))
 
-- fix changelog prep workflow again [#3](https://github.com/jovyan123-playground/release-helpers-playground/pull/3) ([@jovyan123-playground](https://github.com/jovyan123-playground))
-- fix changelog prep workflow [#2](https://github.com/jovyan123-playground/release-helpers-playground/pull/2) ([@jovyan123-playground](https://github.com/jovyan123-playground))
-- more no covers [#1](https://github.com/jovyan123-playground/release-helpers-playground/pull/1) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Fix changelog prep workflow again [#3](https://github.com/jovyan123-playground/release-helpers-playground/pull/3) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Fix changelog prep workflow [#2](https://github.com/jovyan123-playground/release-helpers-playground/pull/2) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Ignore more coverage lines [#1](https://github.com/jovyan123-playground/release-helpers-playground/pull/1) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 
 ### Contributors to this release
 
