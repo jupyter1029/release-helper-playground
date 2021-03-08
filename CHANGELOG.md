@@ -6,7 +6,7 @@
 
 ([Full Changelog](https://github.com/jovyan123-playground/release-helpers-playground/compare/v0.0.2...b0f98ff144a768e1ebfec2bc194d9ed980138c12))
 
-- add support for checking markdown links [#12](https://github.com/jovyan123-playground/release-helpers-playground/pull/12) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Add support for checking markdown links [#12](https://github.com/jovyan123-playground/release-helpers-playground/pull/12) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 - Automated Changelog for 0.0.2 on main [#11](https://github.com/jovyan123-playground/release-helpers-playground/pull/11) ([@github-actions](https://github.com/github-actions))
 
 ### Contributors to this release
