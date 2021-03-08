@@ -46,8 +46,6 @@ A set of helper scripts and example GitHub Action workflows to aid in automated 
 
 ## Installation
 
-Hi there.
-
 To install the latest release locally, make sure you have
 [pip installed](https://pip.readthedocs.io/en/stable/installing/) and run:
 
