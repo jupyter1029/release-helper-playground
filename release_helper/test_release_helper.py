@@ -3,6 +3,7 @@
 import json
 import os
 import os.path as osp
+import re
 import shlex
 import shutil
 import sys
@@ -411,6 +412,9 @@ def test_prep_changelog_existing(py_package):
     text = changelog.read_text(encoding="utf-8")
     assert "Definining contributions" in text, text
     assert not "defining contributions" in text, text
+
+    assert len(re.findall(cli.START_MARKER, text)) == 1
+    assert len(re.findall(cli.END_MARKER, text)) == 1
 
 
 def test_validate_changelog(py_package, tmp_path):
