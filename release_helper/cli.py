@@ -485,12 +485,6 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
 
     Path(path).write_text(changelog, encoding="utf-8")
 
-    ## Verify the change for the PR
-    # New version entry in the diff
-    diff = run("git --no-pager diff")
-    if f"# {version}" not in prev_entry:
-        assert f"# {version}" in diff, diff
-
     # Stage the changelog
     run(f"git add {normalize_path(path)}")
 
@@ -642,22 +636,6 @@ def prep_release(branch, remote, repo, version_cmd, post_version_spec):
         post_version = get_version()
         print(f"Bumped version to {post_version}")
         run(f'git commit -a -m "Bump to {post_version}"')
-
-    # Verify the commits and tags
-    # https://stackoverflow.com/a/12609622
-    remote_branch = run("git rev-parse --symbolic-full-name --abbrev-ref @{u}")
-    diff = run(f"git --no-pager diff HEAD {remote_branch}")
-
-    # If running in unit test, the branches are one and the same
-    # Since the remote is a local directory
-    print("getting url")
-    url = run(f"git remote get-url {remote}")
-    print("got url", url)
-    if normalize_path(url) != normalize_path(os.getcwd()):
-        assert version in diff, diff
-
-    tags = run("git --no-pager tag").splitlines()
-    assert tag_name in tags, tags
 
     # Follow up actions
     print("\n\n\n**********\n")
