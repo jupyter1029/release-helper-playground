@@ -6,7 +6,7 @@
 
 ([Full Changelog](https://github.com/jovyan123-playground/release-helpers-playground/compare/v0.0.1...1446dcfa20f5def8ea8c69ce973ef9ae06128f47))
 
-- fix duplicate end marker [#8](https://github.com/jovyan123-playground/release-helpers-playground/pull/8) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Fix duplicate end marker [#8](https://github.com/jovyan123-playground/release-helpers-playground/pull/8) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 - Automated Changelog for 0.0.2 on main [#7](https://github.com/jovyan123-playground/release-helpers-playground/pull/7) ([@github-actions](https://github.com/github-actions))
 - Add ability to augment changelog with new PRs [#6](https://github.com/jovyan123-playground/release-helpers-playground/pull/6) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 - More debug [#5](https://github.com/jovyan123-playground/release-helpers-playground/pull/5) ([@jovyan123-playground](https://github.com/jovyan123-playground))
