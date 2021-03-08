@@ -581,7 +581,7 @@ def prep_python(test_cmd):
     # run the test command in the venv
     for asset in ["gz", "whl"]:
         env_path = normalize_path(osp.abspath(f"./test_{asset}"))
-        if os.name == "nt":
+        if os.name == "nt":  # pragma: no cover
             bin_path = f"{env_path}/Scripts/"
         else:
             bin_path = f"{env_path}/bin"
@@ -648,5 +648,5 @@ def prep_release(branch, remote, repo, version_cmd, post_version_spec):
     print("Make a GitHub release")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
