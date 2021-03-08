@@ -39,7 +39,7 @@ A set of helper scripts and example GitHub Action workflows to aid in automated 
 </p>
 
 - Merge the PR
-- The maintainer goes to the GitHub page for their fork and gos to the Actions panel
+- Go to the GitHub page for your fork and go to the Actions panel
 - Select the Create Release workflow
 
 <p align="center">
