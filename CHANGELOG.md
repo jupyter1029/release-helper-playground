@@ -6,9 +6,9 @@
 
 ([Full Changelog](https://github.com/jovyan123-playground/release-helpers-playground/compare/v0.0.2...6e228902a2dbb794f9f5cf733ab39cc005d45d49))
 
-- add cancel on individual runs [#23](https://github.com/jovyan123-playground/release-helpers-playground/pull/23) ([@jovyan123-playground](https://github.com/jovyan123-playground))
-- add github release screenshot and center align images [#22](https://github.com/jovyan123-playground/release-helpers-playground/pull/22) ([@jovyan123-playground](https://github.com/jovyan123-playground))
-- add workflow canceler and use more unique name for cache [#21](https://github.com/jovyan123-playground/release-helpers-playground/pull/21) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Add cancel on individual runs [#23](https://github.com/jovyan123-playground/release-helpers-playground/pull/23) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Add github release screenshot and center align images [#22](https://github.com/jovyan123-playground/release-helpers-playground/pull/22) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Add workflow canceler and use more unique name for cache [#21](https://github.com/jovyan123-playground/release-helpers-playground/pull/21) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 
 ### Contributors to this release
 
