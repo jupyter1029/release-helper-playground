@@ -1,8 +1,8 @@
-name: Prepare Changelog
+name: Create Changelog
 on:
   workflow_dispatch:
     inputs:
-      version_sepc:
+      version_spec:
         description: "New Version Spec"
         required: true
 jobs:
