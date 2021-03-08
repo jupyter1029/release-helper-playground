@@ -470,7 +470,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
     ## Verify the change for the PR
     # New version entry in the diff
     diff = run("git --no-pager diff")
-    assert f"# {version}" in diff
+    assert f"# {version}" in diff, diff
 
     # Stage the changelog
     run(f"git add {normalize_path(path)}")
@@ -635,7 +635,7 @@ def prep_release(branch, remote, repo, version_cmd, post_version_spec):
     url = run(f"git remote get-url {remote}")
     print("got url", url)
     if normalize_path(url) != normalize_path(os.getcwd()):
-        assert version in diff
+        assert version in diff, diff
 
     tags = run("git --no-pager tag").splitlines()
     assert tag_name in tags, tags
