@@ -49,7 +49,10 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -e .[test]
+      - name: Check Manifest
+        run: |
           pip install check-manifest
+          check-manifest -v
       - name: Initialize Environment
         run: |
           release-helper prep-env
@@ -72,7 +75,6 @@ jobs:
         run: |
           release-helper prep-python
           release-helper validate-changelog
-          check-manifest -v
           release-helper prep-release
           cat ${CHANGELOG_OUTPUT}
       - name: Publish PyPI Package
