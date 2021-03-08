@@ -18,7 +18,6 @@
 
 <!-- <END NEW CHANGELOG ENTRY> -->
 
-
 ## 0.0.2
 
 ([Full Changelog](https://github.com/jovyan123-playground/release-helpers-playground/compare/v0.0.1...75240b1d57d2e8df1ba3fc01d02e1e9ca78ef183))
@@ -45,7 +44,6 @@
 ([GitHub contributors page for this release](https://github.com/jovyan123-playground/release-helpers-playground/graphs/contributors?from=2021-03-05&to=2021-03-08&type=c))
 
 [@codecov](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helpers-playground+involves%3Acodecov+updated%3A2021-03-05..2021-03-08&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helpers-playground+involves%3Agithub-actions+updated%3A2021-03-05..2021-03-08&type=Issues) | [@jovyan123-playground](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helpers-playground+involves%3Ajovyan123-playground+updated%3A2021-03-05..2021-03-08&type=Issues)
-
 
 ## 0.0.1
 
