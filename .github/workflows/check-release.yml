@@ -53,6 +53,7 @@ jobs:
         run: |
           release-helper prep-env
           cat ${GITHUB_ENV}
+          release-helper --help
       - name: Run the changelog prep
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
