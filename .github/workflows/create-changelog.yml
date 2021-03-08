@@ -28,7 +28,7 @@ jobs:
           pip install --upgrade pip setuptools wheel --user
       - name: Install Dependencies
         run: |
-          pip install -e .[publishing,test]
+          pip install -e .[test]
       - name: Initialize Environment
         run: |
           release-helper prep-env
