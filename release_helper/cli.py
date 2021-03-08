@@ -647,7 +647,7 @@ def prep_release(branch, remote, repo, version_cmd, post_version_spec):
     create_release_commit(version)
 
     # Create the annotated release tag
-    tag_name = f"{version}"
+    tag_name = f"v{version}"
     run(f'git tag {tag_name} -a -m "Release {tag_name}"')
 
     # Bump to post version if given
