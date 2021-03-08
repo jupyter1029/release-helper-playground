@@ -463,7 +463,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
     # Insert the entry into the file
     # Test if we are augmenting an existing changelog entry (for new PRs)
     # Preserve existing PR entries since we may have formatted them
-    new_entry = f"{START_MARKER}\n{entry}\n{END_MARKER}\n"
+    new_entry = f"{START_MARKER}\n\n{entry}\n\n{END_MARKER}\n"
     prev_entry = changelog[changelog.index(START_MARKER) : changelog.index(END_MARKER)]
 
     if f"# {version}" in prev_entry:
