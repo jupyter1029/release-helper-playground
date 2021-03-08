@@ -6,12 +6,7 @@ on:
     branches: "*"
 jobs:
   release_check:
-    runs-on: ${{ matrix.os }}-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ubuntu]
-        python-version: ["3.9"]
+    runs-on: ubuntu-latest
     env:
       VERSION_SPEC: "100.5.1"
       POST_VERSION_SPEC: "100.6.0.dev0"
@@ -19,10 +14,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Install Python ${{ matrix.python-version }}
+      - name: Install Python
         uses: actions/setup-python@v1
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.9
           architecture: "x64"
       - name: Get pip cache dir
         id: pip-cache
@@ -32,9 +27,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.cfg') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('setup.cfg') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
             ${{ runner.os }}-pip-
       - name: Cache checked links
         uses: actions/cache@v2
