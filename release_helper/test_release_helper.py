@@ -467,34 +467,10 @@ def test_validate_changelog(py_package, tmp_path):
     assert cli.END_MARKER in text
 
 
-def test_prep_python_pyproject(py_package):
+def test_prep_python(py_package):
     runner = CliRunner()
-    pyproject = Path("pyproject.toml")
-    text = orig_text = pyproject.read_text(encoding="utf-8")
-    text += """
-[tool.check-manifest]
-ignore = ["tbump.toml"]
-"""
-    pyproject.write_text(text, encoding="utf-8")
     result = runner.invoke(cli.main, ["prep-python"])
     assert result.exit_code == 0, result.output
-    pyproject.write_text(orig_text, encoding="utf-8")
-
-
-def test_prep_python_setup_cfg(py_package):
-    runner = CliRunner()
-    run("git rm pyproject.toml")
-    setup_cfg = Path("setup.cfg")
-    text = orig_text = setup_cfg.read_text(encoding="utf-8")
-    text += """
-[check-manifest]
-ignore =
-    tbump.toml
-"""
-    setup_cfg.write_text(text, encoding="utf-8")
-    result = runner.invoke(cli.main, ["prep-python"])
-    assert result.exit_code == 0, result.output
-    setup_cfg.write_text(orig_text, encoding="utf-8")
 
 
 def test_prep_release(py_package):
