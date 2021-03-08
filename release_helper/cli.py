@@ -623,6 +623,7 @@ def prep_python(test_cmd):
     help="Duration in seconds for links to be cached (default one week)",
 )
 def check_md_links(ignore, cache_file, links_expire):
+    """Check links in Markdown files"""
     cache_dir = os.path.expanduser(cache_file)
     os.makedirs(cache_dir, exist_ok=True)
     cmd = "pytest --check-links --check-links-cache "
