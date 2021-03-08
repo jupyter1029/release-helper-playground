@@ -417,6 +417,26 @@ def test_prep_changelog_existing(py_package):
     assert len(re.findall(cli.END_MARKER, text)) == 1
 
 
+def test_check_md_links(py_package):
+    runner = CliRunner()
+    readme = py_package / "README.md"
+    text = readme.read_text(encoding="utf-8")
+    text += "\nhttps://apod.nasa.gov/apod/astropix.html"
+    readme.write_text(text, encoding="utf-8")
+
+    result = runner.invoke(cli.main, ["check-md-links"])
+    assert result.exit_code == 0, result.output
+
+    foo = py_package / "FOO.md"
+    foo.write_text("http://127.0.0.1:5555")
+
+    result = runner.invoke(cli.main, ["check-md-links"])
+    assert result.exit_code == 1, result.output
+
+    result = runner.invoke(cli.main, ["check-md-links", "--ignore", "FOO.md"])
+    assert result.exit_code == 0, result.output
+
+
 def test_validate_changelog(py_package, tmp_path):
     runner = CliRunner()
     changelog = py_package / "CHANGELOG.md"
@@ -447,34 +467,10 @@ def test_validate_changelog(py_package, tmp_path):
     assert cli.END_MARKER in text
 
 
-def test_prep_python_pyproject(py_package):
+def test_prep_python(py_package):
     runner = CliRunner()
-    pyproject = Path("pyproject.toml")
-    text = orig_text = pyproject.read_text(encoding="utf-8")
-    text += """
-[tool.check-manifest]
-ignore = ["tbump.toml"]
-"""
-    pyproject.write_text(text, encoding="utf-8")
     result = runner.invoke(cli.main, ["prep-python"])
     assert result.exit_code == 0, result.output
-    pyproject.write_text(orig_text, encoding="utf-8")
-
-
-def test_prep_python_setup_cfg(py_package):
-    runner = CliRunner()
-    run("git rm pyproject.toml")
-    setup_cfg = Path("setup.cfg")
-    text = orig_text = setup_cfg.read_text(encoding="utf-8")
-    text += """
-[check-manifest]
-ignore =
-    tbump.toml
-"""
-    setup_cfg.write_text(text, encoding="utf-8")
-    result = runner.invoke(cli.main, ["prep-python"])
-    assert result.exit_code == 0, result.output
-    setup_cfg.write_text(orig_text, encoding="utf-8")
 
 
 def test_prep_release(py_package):

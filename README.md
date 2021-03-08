@@ -115,7 +115,6 @@ To install the latest release locally, make sure you have
   - Ensures that all PRs are the same between the two
   - Writes the changelog entry out to a file to be used as the GitHub Release text
 - If there is a Python package
-  - Runs [`check-manifest`](https://github.com/mgedmin/check-manifest#configuration) if config is available
   - Builds the wheel and source distributions
   - Makes dists can be installed and imported in a virtual environment
 - NPM and lerna support are forthcoming - See TODO

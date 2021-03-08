@@ -21,7 +21,7 @@ jobs:
       VERSION_SPEC: ${{ github.event.inputs.version_spec }}
       POST_VERSION_SPEC: ${{ github.event.inputs.post_version_spec }}
       BRANCH: ${{ github.event.inputs.branch }}
-      CHANGELOG_OUTPUT: "changelog_entry.md"
+      CHANGELOG_OUTPUT: "~/changelog_entry.md"
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -47,7 +47,8 @@ jobs:
             ${{ runner.os }}-pip-
       - name: Install Dependencies
         run: |
-          pip install -e .[publishing,test]
+          pip install -e .[test]
+          pip install check-manifest
       - name: Initialize Environment
         run: |
           release-helper prep-env
@@ -58,6 +59,7 @@ jobs:
         run: |
           release-helper prep-python
           release-helper validate-changelog
+          check-manifest -v
           release-helper prep-release
           cat ${CHANGELOG_OUTPUT}
       - name: Publish PyPI Package

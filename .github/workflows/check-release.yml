@@ -1,32 +1,24 @@
 name: Check Release
 on:
   push:
-    branches: "*"
+    branches: "main"
   pull_request:
     branches: "*"
 jobs:
   release_check:
-    runs-on: ${{ matrix.os }}-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ubuntu]
-        python-version: ["3.9"]
+    runs-on: ubuntu-latest
     env:
       VERSION_SPEC: "100.5.1"
       POST_VERSION_SPEC: "100.6.0.dev0"
-      CHANGELOG_OUTPUT: "changelog_entry.md"
+      CHANGELOG_OUTPUT: "/tmp/changelog_entry.md"
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Install Python ${{ matrix.python-version }}
+      - name: Install Python
         uses: actions/setup-python@v1
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.9
           architecture: "x64"
-      - name: Upgrade packaging dependencies
-        run: |
-          pip install --upgrade pip setuptools wheel --user
       - name: Get pip cache dir
         id: pip-cache
         run: |
@@ -35,17 +27,32 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.py') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('setup.cfg') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
             ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-
+      - name: Cache checked links
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pytest-link-check
+          key: ${{ runner.os }}-linkcheck-${{ hashFiles('**/*.rst', '**/.md') }}-changelog
+          restore-keys: |
+            ${{ runner.os }}-linkcheck-
+      - name: Upgrade packaging dependencies
+        run: |
+          pip install --upgrade pip setuptools wheel --user
       - name: Install Dependencies
         run: |
-          pip install -e .[publishing,test]
+          pip install -e .[test]
+      - name: Check Manifest
+        run: |
+          pip install check-manifest
+          check-manifest -v
       - name: Initialize Environment
         run: |
           release-helper prep-env
           cat ${GITHUB_ENV}
+          release-helper --help
       - name: Run the changelog prep
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
