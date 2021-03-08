@@ -71,7 +71,6 @@ jobs:
         run: |
           release-helper prep-python
           release-helper validate-changelog
-          release-helper check-md-links
           release-helper prep-release
           cat ${CHANGELOG_OUTPUT}
       - name: Publish PyPI Package
