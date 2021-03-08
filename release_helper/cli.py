@@ -615,7 +615,7 @@ def check_md_links(ignore, cache_file, links_expire):
     os.makedirs(cache_dir, exist_ok=True)
     cmd = "pytest --check-links --check-links-cache "
     cmd += f"--check-links-cache-expire-after {links_expire} "
-    cmd += f"--check-links-cache-name {cache_dir}/cache "
+    cmd += f"--check-links-cache-name {cache_dir}/check-md-links "
     cmd += " -k .md "
 
     for spec in ignore.split(","):
