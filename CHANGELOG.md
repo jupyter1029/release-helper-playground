@@ -6,7 +6,7 @@
 
 ([Full Changelog](https://github.com/jovyan123-playground/release-helpers-playground/compare/v0.0.1...75240b1d57d2e8df1ba3fc01d02e1e9ca78ef183))
 
-- fix tag name [#19](https://github.com/jovyan123-playground/release-helpers-playground/pull/19) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Fix tag name [#19](https://github.com/jovyan123-playground/release-helpers-playground/pull/19) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 - Automated Changelog for 0.0.2 on main [#18](https://github.com/jovyan123-playground/release-helpers-playground/pull/18) ([@github-actions](https://github.com/github-actions))
 - Standardize changelog name and fix changelog_output path [#16](https://github.com/jovyan123-playground/release-helpers-playground/pull/16) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 - Automated Changelog for 0.0.2 on main [#15](https://github.com/jovyan123-playground/release-helpers-playground/pull/15) ([@github-actions](https://github.com/github-actions))
