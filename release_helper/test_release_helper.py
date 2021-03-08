@@ -439,7 +439,7 @@ def test_validate_changelog(py_package, tmp_path):
 
     assert PR_ENTRY in output.read_text(encoding="utf-8")
     text = changelog.read_text(encoding="utf-8")
-    assert f"{cli.START_MARKER}\n## {version_spec}" in text
+    assert f"{cli.START_MARKER}\n\n## {version_spec}" in text
     assert cli.END_MARKER in text
 
 
