@@ -624,7 +624,7 @@ def prep_python(test_cmd):
 )
 def check_md_links(ignore, cache_file, links_expire):
     """Check links in Markdown files"""
-    cache_dir = os.path.expanduser(cache_file)
+    cache_dir = os.path.expanduser(cache_file).replace(os.sep, "/")
     os.makedirs(cache_dir, exist_ok=True)
     cmd = "pytest --check-links --check-links-cache "
     cmd += f"--check-links-cache-expire-after {links_expire} "
