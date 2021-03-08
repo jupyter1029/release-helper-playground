@@ -26,23 +26,34 @@ A set of helper scripts and example GitHub Action workflows to aid in automated 
   - Select the Prepare Changelog workflow
   - Run the Workflow with the version spec (usually the new version number), and make sure the target branch is correct
 
+<p align="center">
 <img src="screenshots/create_changelog_workflow.png" alt="Create Changelog Workflow"
 	title="Create Changelog Workflow" width="50%"/>
+</p>
 
 - When the run completes, review the changelog PR that was opened, making any desired edits
 
+<p align="center">
 <img src="screenshots/changelog_pr.png" alt="Changelog Pull Request"
 	title="Changelog Pull Request" width=80% />
+</p>
 
 - Merge the PR
-- The maintainer goes to the GitHub page for their fork and gos to the Actions panel
+- Go to the GitHub page for your fork and go to the Actions panel
 - Select the Create Release workflow
 
+<p align="center">
 <img src="screenshots/create_release_workflow.png" alt="Create Release Workflow"
 	title="Create Release Workflow" width="50%" />
+</p>
 
 - Run the Workflow with the same version spec as before, and an optional post version spec if you want to go back to a dev version in the target branch. Select the appropriate branch as well
 - When the workflow completes, go to the releases page in the main repository and verify that the new release is there with the correct changelog. You can also go to PyPI and/or npm to verify the package(s) are available.
+
+<p align="center">
+<img src="screenshots/github_release.png" alt="GitHub Release"
+	title="GitHub Release" width="80%" />
+</p>
 
 ## Installation
 
