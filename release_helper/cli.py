@@ -155,7 +155,7 @@ def get_changelog_entry(branch, repo, version, *, auth=None, resolve_backports=F
 
     if not md:
         print("No PRs found")
-        return f"## {version}\nNo merged PRs."
+        return f"## {version}\nNo merged PRs"
 
     md = md.splitlines()
 
@@ -212,7 +212,7 @@ def compute_sha256(path):
 
 
 def create_release_commit(version):
-    """Generate a release commit that has the sha256 digests for the release files."""
+    """Generate a release commit that has the sha256 digests for the release files"""
     cmd = f'git commit -am "Publish {version}" -m "SHA256 hashes:"'
 
     shas = dict()
@@ -275,7 +275,7 @@ def bump_version(version_spec, version_cmd=""):
 
 
 class NaturalOrderGroup(click.Group):
-    """Click group that lists commmands in the order added."""
+    """Click group that lists commmands in the order added"""
 
     def list_commands(self, ctx):
         return self.commands.keys()
@@ -283,13 +283,13 @@ class NaturalOrderGroup(click.Group):
 
 @click.group(cls=NaturalOrderGroup)
 def main():
-    f"""Release helper scripts v{__version__}."""
+    f"""Release helper scripts v{__version__}"""
     pass
 
 
 # Extracted common options
 version_cmd_options = [
-    click.option("--version-cmd", envvar="VERSION_CMD", help="The version command.")
+    click.option("--version-cmd", envvar="VERSION_CMD", help="The version command")
 ]
 
 version_spec_options = version_cmd_options + [
@@ -297,20 +297,20 @@ version_spec_options = version_cmd_options + [
         "--version-spec",
         envvar="VERSION_SPEC",
         required=True,
-        help="The new version specifier.",
+        help="The new version specifier",
     )
 ]
 
 branch_options = [
-    click.option("--branch", envvar="BRANCH", help="The target branch."),
+    click.option("--branch", envvar="BRANCH", help="The target branch"),
     click.option(
-        "--remote", envvar="REMOTE", default="upstream", help="The git remote name."
+        "--remote", envvar="REMOTE", default="upstream", help="The git remote name"
     ),
-    click.option("--repo", envvar="REPOSITORY", help="The git repo."),
+    click.option("--repo", envvar="REPOSITORY", help="The git repo"),
 ]
 
 auth_options = [
-    click.option("--auth", envvar="GITHUB_ACCESS_TOKEN", help="The GitHub auth token."),
+    click.option("--auth", envvar="GITHUB_ACCESS_TOKEN", help="The GitHub auth token"),
 ]
 
 changelog_options = (
@@ -321,20 +321,20 @@ changelog_options = (
             "--path",
             envvar="CHANGELOG",
             default="CHANGELOG.md",
-            help="The path to the changelog file.",
+            help="The path to the changelog file",
         ),
         click.option(
             "--resolve-backports",
             envvar="RESOLVE_BACKPORTS",
             is_flag=True,
-            help="Resolve backport PRs to their originals.",
+            help="Resolve backport PRs to their originals",
         ),
     ]
 )
 
 
 def add_options(options):
-    """Add extracted common options to a click command."""
+    """Add extracted common options to a click command"""
     # https://stackoverflow.com/a/40195800
     def _add_options(func):
         for option in reversed(options):
@@ -350,7 +350,7 @@ def add_options(options):
 @add_options(auth_options)
 @click.option("--output", envvar="GITHUB_ENV", help="Output file for env variables")
 def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
-    """Prep git and environment variables."""
+    """Prep git and environment variables"""
 
     # Get the branch
     if not branch:
@@ -436,7 +436,7 @@ IS_PRERELEASE={is_prerelease}
     help="Whether to keep unstaged files after writing the changelog",
 )
 def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
-    """Prep the changelog entry."""
+    """Prep the changelog entry"""
     branch = branch or get_branch()
 
     # Get the new version
@@ -501,10 +501,10 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
 @main.command()
 @add_options(changelog_options)
 @click.option(
-    "--output", envvar="CHANGELOG_OUTPUT", help="The output file for changelog entry."
+    "--output", envvar="CHANGELOG_OUTPUT", help="The output file for changelog entry"
 )
 def validate_changelog(branch, remote, repo, auth, path, resolve_backports, output):
-    """Validate the changelog entry."""
+    """Validate the changelog entry"""
     branch = branch or get_branch()
 
     # Get the new version
@@ -560,10 +560,10 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
 
 @main.command()
 @click.option(
-    "--test-cmd", envvar="PY_TEST_CMD", help="The command to run in the test venvs."
+    "--test-cmd", envvar="PY_TEST_CMD", help="The command to run in the test venvs"
 )
 def prep_python(test_cmd):
-    """Build and check the python dist files."""
+    """Build and check the python dist files"""
     # Check manifest if config is given
     found = False
     if osp.exists("pyproject.toml"):
@@ -610,7 +610,9 @@ def prep_python(test_cmd):
 
 @main.command()
 @click.option(
-    "--ignore", default="CHANGELOG.md", help="Comma separated list of paths to ignore"
+    "--ignore",
+    default="CHANGELOG.md",
+    help="Comma separated list of glob patterns to ignore",
 )
 @click.option(
     "--cache-file", default="~/.cache/pytest-link-check", help="The cache file to use"
@@ -643,10 +645,10 @@ def check_md_links(ignore, cache_file, links_expire):
 @click.option(
     "--post-version-spec",
     envvar="POST_VERSION_SPEC",
-    help="The post release version (usually dev).",
+    help="The post release version (usually dev)",
 )
 def prep_release(branch, remote, repo, version_cmd, post_version_spec):
-    """Create commit(s) and tag, handle post version bump."""
+    """Create commit(s) and tag, handle post version bump"""
     # Get the new version
     version = get_version()
 
