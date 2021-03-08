@@ -10,7 +10,7 @@ using the Jupyter Server, and introduce yourself on the mailing list and
 share what area of the project you are interested in working on.
 
 For general documentation about contributing to Jupyter projects, see the
-[Project Jupyter Contributor Documentation](https://jupyter.readthedocs.io/en/latest/contributor/content-contributor.html)
+[Project Jupyter Contributor Documentation](https://jupyter.readthedocs.io/en/latest/contributing/content-contributor.html)
 
 ## Setting Up a Development Environment
 

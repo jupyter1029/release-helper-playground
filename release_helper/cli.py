@@ -7,6 +7,7 @@ import os.path as osp
 import re
 import shlex
 import shutil
+import sys
 from glob import glob
 from pathlib import Path
 from subprocess import check_output
@@ -605,6 +606,36 @@ def prep_python(test_cmd):
         run(f"{bin_path}/python -m pip install -U pip")
         run(f"{bin_path}/pip install -q {fname}")
         run(f"{bin_path}/{test_cmd}")
+
+
+@main.command()
+@click.option(
+    "--ignore", default="CHANGELOG.md", help="Comma separated list of paths to ignore"
+)
+@click.option(
+    "--cache-file", default="~/.cache/pytest-link-check", help="The cache file to use"
+)
+@click.option(
+    "--links-expire",
+    default=604800,
+    help="Duration in seconds for links to be cached (default one week)",
+)
+def check_md_links(ignore, cache_file, links_expire):
+    cache_dir = os.path.expanduser(cache_file)
+    os.makedirs(cache_dir, exist_ok=True)
+    cmd = "pytest --check-links --check-links-cache "
+    cmd += f"--check-links-cache-expire-after {links_expire} "
+    cmd += f"--check-links-cache-name {cache_dir}/cache "
+    cmd += " -k .md "
+
+    for spec in ignore.split(","):
+        cmd += f"--ignore-glob {spec}"
+
+    cmd += " ".join(sys.argv[2:])
+    try:
+        run(cmd)
+    except Exception:
+        run(cmd + " --lf")
 
 
 @main.command()

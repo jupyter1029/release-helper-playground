@@ -24,21 +24,24 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: "x64"
-      - name: Upgrade packaging dependencies
-        run: |
-          pip install --upgrade pip setuptools wheel --user
-      - name: Get pip cache dir
-        id: pip-cache
-        run: |
-          echo "::set-output name=dir::$(pip cache dir)"
       - name: Cache pip
         uses: actions/cache@v1
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.py') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('setup.cfg') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
             ${{ runner.os }}-pip-
+      - name: Cache checked links
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pytest-link-check
+          key: ${{ runner.os }}-linkcheck-${{ hashFiles('**/*.rst', '**/.md') }}-changelog
+          restore-keys: |
+            ${{ runner.os }}-linkcheck-
+      - name: Upgrade packaging dependencies
+        run: |
+          pip install --upgrade pip setuptools wheel --user
       - name: Install Dependencies
         run: |
           pip install -e .[publishing,test]
@@ -63,6 +66,7 @@ jobs:
         run: |
           release-helper prep-python
           release-helper validate-changelog
+          release-helper check-md-links
           release-helper prep-release
           cat ${CHANGELOG_OUTPUT}
       - name: Publish PyPI Package
