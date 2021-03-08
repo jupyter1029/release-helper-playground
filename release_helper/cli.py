@@ -555,6 +555,7 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
             raise ValueError(f"PR #{pr} does not belong in the changelog for {version}")
 
     if output:
+        output = os.path.expanduser(output).replace(os.sep, "/")
         Path(output).write_text(final_entry, encoding="utf-8")
 
 
