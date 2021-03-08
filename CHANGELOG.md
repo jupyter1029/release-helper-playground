@@ -1,4 +1,4 @@
-# Change Log
+# Changelog
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
