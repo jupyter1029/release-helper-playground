@@ -417,6 +417,26 @@ def test_prep_changelog_existing(py_package):
     assert len(re.findall(cli.END_MARKER, text)) == 1
 
 
+def test_check_md_links(py_package):
+    runner = CliRunner()
+    readme = py_package / "README.md"
+    text = readme.read_text(encoding="utf-8")
+    text += "\nhttps://apod.nasa.gov/apod/astropix.html"
+    readme.write_text(text, encoding="utf-8")
+
+    result = runner.invoke(cli.main, ["check-md-links"])
+    assert result.exit_code == 0, result.output
+
+    foo = py_package / "FOO.md"
+    foo.write_text("http://127.0.0.1:5555")
+
+    result = runner.invoke(cli.main, ["check-md-links"])
+    assert result.exit_code == 1, result.output
+
+    result = runner.invoke(cli.main, ["check-md-links", "--ignore", "FOO.md"])
+    assert result.exit_code == 0, result.output
+
+
 def test_validate_changelog(py_package, tmp_path):
     runner = CliRunner()
     changelog = py_package / "CHANGELOG.md"

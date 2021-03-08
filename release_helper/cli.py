@@ -631,7 +631,6 @@ def check_md_links(ignore, cache_file, links_expire):
     for spec in ignore.split(","):
         cmd += f"--ignore-glob {spec}"
 
-    cmd += " ".join(sys.argv[2:])
     try:
         run(cmd)
     except Exception:
