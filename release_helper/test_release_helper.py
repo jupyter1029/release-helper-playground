@@ -396,13 +396,13 @@ def test_prep_changelog_existing(py_package):
 
     with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
-        result = runner.invoke(cli.main, ["prep-changelog", "--path", changelog])
+        result = runner.invoke(
+            cli.main, ["prep-changelog", "--path", changelog, "--keep"]
+        )
     assert result.exit_code == 0, result.output
     text = changelog.read_text(encoding="utf-8")
     text = text.replace("defining contributions", "Definining contributions")
     changelog.write_text(text, encoding="utf-8")
-
-    result = runner.invoke(cli.main, ["prep-env", "--version-spec", "1.0.1"])
 
     with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
