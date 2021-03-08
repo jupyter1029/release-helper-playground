@@ -6,8 +6,8 @@
 
 ([Full Changelog](https://github.com/jovyan123-playground/release-helpers-playground/compare/v0.0.1...8bc1dc12ad66d33ee945064fd905f56a836380b4))
 
-- add ability to augment changelog with new PRs [#6](https://github.com/jovyan123-playground/release-helpers-playground/pull/6) ([@jovyan123-playground](https://github.com/jovyan123-playground))
-- more debug [#5](https://github.com/jovyan123-playground/release-helpers-playground/pull/5) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Add ability to augment changelog with new PRs [#6](https://github.com/jovyan123-playground/release-helpers-playground/pull/6) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- More debug [#5](https://github.com/jovyan123-playground/release-helpers-playground/pull/5) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 - Automated Changelog for 0.0.2 on main [#4](https://github.com/jovyan123-playground/release-helpers-playground/pull/4) ([@github-actions](https://github.com/github-actions))
 - Fix changelog prep workflow again [#3](https://github.com/jovyan123-playground/release-helpers-playground/pull/3) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 - Fix changelog prep workflow [#2](https://github.com/jovyan123-playground/release-helpers-playground/pull/2) ([@jovyan123-playground](https://github.com/jovyan123-playground))
@@ -19,7 +19,7 @@
 
 [@codecov](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helpers-playground+involves%3Acodecov+updated%3A2021-03-05..2021-03-08&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helpers-playground+involves%3Agithub-actions+updated%3A2021-03-05..2021-03-08&type=Issues) | [@jovyan123-playground](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helpers-playground+involves%3Ajovyan123-playground+updated%3A2021-03-05..2021-03-08&type=Issues)
 
-<!-- <END NEW CHANGELOG ENTRY> --><!-- <END NEW CHANGELOG ENTRY> -->
+<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.0.1
 
