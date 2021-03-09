@@ -74,6 +74,9 @@ jobs:
         run: |
           pip freeze
           pip check
+      - name: Check Links in Markdown
+        run: |
+          release-helper check-md-links
       - name: Run the tests with coverage
         if: ${{ matrix.os != 'windows' }}
         run: |
