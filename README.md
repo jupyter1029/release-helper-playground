@@ -96,8 +96,8 @@ test = coverage; pytest; pytest-cov; release-helper
   - [ ] Create [`NPM_TOKEN`](https://docs.npmjs.com/creating-and-viewing-access-tokens) (if needed)
   - [ ] Create [`REPO_ACCESS_TOKEN`](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with `public_repo` access
 - [ ] One publisher adds their `TEST_PYPI_TOKEN` to the source repo's secrets for the release check workflow
-- [ ] Add workflows for `check_release`, `create_changelog`, and `create_release` - see the workflows in this [repo](./github/workflows)
-- [ ] Optionally add workflow for `cancel` to cancel previous workflow runs when a new one is started - see [cancel.yml](./github/workflows)
+- [ ] Add workflows for `check_release`, `create_changelog`, and `create_release` - see the workflows in this [repo](./.github/workflows)
+- [ ] Optionally add workflow for `cancel` to cancel previous workflow runs when a new one is started - see [cancel.yml](./.github/workflows)
 - [ ] Start with the test PyPI server in `create-release`, then switch to the production server once it is fully working
 - [ ] If desired, add workflows, changelog, and `tbump` support to other active release branches
 

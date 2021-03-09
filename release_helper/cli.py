@@ -10,6 +10,7 @@ import shutil
 import sys
 from glob import glob
 from pathlib import Path
+from subprocess import CalledProcessError
 from subprocess import check_output
 
 import click
@@ -34,7 +35,12 @@ def run(cmd, **kwargs):
     """Run a command as a subprocess and get the output as a string"""
     if not kwargs.pop("quiet", False):
         print(f"+ {cmd}")
-    return check_output(shlex.split(cmd), **kwargs).decode("utf-8").strip()
+
+    try:
+        return check_output(shlex.split(cmd), **kwargs).decode("utf-8").strip()
+    except CalledProcessError as e:
+        print(e.output.decode("utf-8").strip())
+        raise e
 
 
 def get_branch():
@@ -482,6 +488,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
         changelog = changelog.replace(prev_entry, "\n".join(lines))
     else:
         changelog = changelog.replace(END_MARKER + "\n\n", "")
+        changelog = changelog.replace(END_MARKER + "\n", "")
         changelog = changelog.replace(START_MARKER, new_entry)
 
     Path(path).write_text(changelog, encoding="utf-8")
