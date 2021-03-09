@@ -2,6 +2,20 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.0.4
+
+([Full Changelog](https://github.com/jovyan123-playground/release-helper-playground/compare/v0.0.3...f483bd044d35cd78037efe57f56fe0a7ac9af9a4))
+
+- Various housekeeping [#25](https://github.com/jovyan123-playground/release-helper-playground/pull/25) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+
+### Contributors to this release
+
+([GitHub contributors page for this release](https://github.com/jovyan123-playground/release-helper-playground/graphs/contributors?from=2021-03-08&to=2021-03-09&type=c))
+
+[@jovyan123-playground](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helper-playground+involves%3Ajovyan123-playground+updated%3A2021-03-08..2021-03-09&type=Issues)
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.0.3
 
 ([Full Changelog](https://github.com/jovyan123-playground/release-helpers-playground/compare/v0.0.2...6e228902a2dbb794f9f5cf733ab39cc005d45d49))
@@ -16,7 +30,6 @@
 
 [@codecov](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helpers-playground+involves%3Acodecov+updated%3A2021-03-08..2021-03-08&type=Issues) | [@jovyan123-playground](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helpers-playground+involves%3Ajovyan123-playground+updated%3A2021-03-08..2021-03-08&type=Issues)
 
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.0.2
 
