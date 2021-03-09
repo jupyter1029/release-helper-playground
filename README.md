@@ -80,16 +80,24 @@ To install the latest release locally, make sure you have
   - We recommend [MyST](https://myst-parser.readthedocs.io/en/latest/?badge=latest), especially if some of your docs are in reStructuredText
   - Can use `pandoc -s changelog.rst -o changelog.md` and some hand edits as needed
   - Note that [directives](https://myst-parser.readthedocs.io/en/latest/using/syntax.html#syntax-directives) can still be used
-- [ ] Add HTML start and end comment markers to Changelog file - see example XXX
-- [ ] Add [tbump](https://github.com/tankerhq/tbump) support - see example XXX
-- [ ] Add `release-helper` to the `extras_require` `test` section - see example XXX
+- [ ] Add HTML start and end comment markers to Changelog file - see example in [CHANGELOG.md](./CHANGELOG.md) (view in raw mode)
+- [ ] Add [tbump](https://github.com/tankerhq/tbump) support - see example metadata in [pyproject.toml](./pyproject.toml)
+  - We recommend using `setup.cfg` and using `version attr: <package_name>.__version__`, see example [`setup.cfg`](./setup.cfg)
+  - See documentation on `setup.cfg` [metadata](https://setuptools.readthedocs.io/en/latest/userguide/declarative_config.html)
+- [ ] Add `release-helper` to your `test` section in `extras_require` in your setup config, e.g.
+
+```
+[options.extras_require]
+test = coverage; pytest; pytest-cov; release-helper
+```
+
 - [ ] All publishers set up [secrets](https://docs.github.com/en/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-a-repository) in their fork:
   - [ ] Create [`PYPI_TOKEN`](https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/#saving-credentials-on-github) and `TEST_PYPI_TOKEN` (if needed)
   - [ ] Create [`NPM_TOKEN`](https://docs.npmjs.com/creating-and-viewing-access-tokens) (if needed)
   - [ ] Create [`REPO_ACCESS_TOKEN`](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with `public_repo` access
 - [ ] One publisher adds their `TEST_PYPI_TOKEN` to the source repo's secrets for the release check workflow
-- [ ] Add workflows for `check_release`, `create_changelog`, and `create_release` - see our examples XXX
-- [ ] Optionally add workflow for `cancel` to cancel previous workflow runs when a new one is started - see our example XXX
+- [ ] Add workflows for `check_release`, `create_changelog`, and `create_release` - see the workflows in this [repo](./github/workflows)
+- [ ] Optionally add workflow for `cancel` to cancel previous workflow runs when a new one is started - see [cancel.yml](./github/workflows)
 - [ ] Start with the test PyPI server in `create-release`, then switch to the production server once it is fully working
 - [ ] If desired, add workflows, changelog, and `tbump` support to other active release branches
 
