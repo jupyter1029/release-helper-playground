@@ -6,7 +6,7 @@
 
 ([Full Changelog](https://github.com/jovyan123-playground/release-helper-playground/compare/v0.0.3...8f747f677f7e055fe0077614112619423b5a08f6))
 
-- fix creation of new changelog [#27](https://github.com/jovyan123-playground/release-helper-playground/pull/27) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Fix creation of new changelog and add docs [#27](https://github.com/jovyan123-playground/release-helper-playground/pull/27) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 - Various housekeeping [#25](https://github.com/jovyan123-playground/release-helper-playground/pull/25) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 
 ### Contributors to this release
