@@ -159,11 +159,13 @@ test = coverage; pytest; pytest-cov; release-helper
 
 - Use https://raw.githubusercontent.com for README images
 
-- Add support for config in `pyproject.toml` or `package.json`.
+- Make a `.github/actions` folder with `create_changelog`, `check_release`, and `create_release` actions
 
-- Make a `.github/actions` folder with `create_changelog`, `check_release`, and `create_release` actions for simple Python packages.
-
-  - If we allow `pre-` and `post-` commands to be run for the different steps then we could support more complex packages.
+  - Add support for config in `pyproject.toml` or `package.json`
+  - Allow declaritve `pre-` and `post-` scripts to be run for the different steps so we can support more complex packages
+  - Use a composite run steps [action](https://docs.github.com/en/actions/creating-actions/creating-a-composite-run-steps-action#creating-an-action-metadata-file)
+  - Inputs will be the `env` vars in the current workflow files plus the GitHub token
+  - Use [PyGitHub](https://github.com/PyGithub/PyGithub) to handle GitHub actions (`create_pull` and `create_git_release`)
 
 - jupyter/notebook migration:
 
