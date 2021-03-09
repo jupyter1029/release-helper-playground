@@ -1,4 +1,4 @@
-name: Cancel
+name: Cancel Prev Runs
 on:
   workflow_run:
     workflows: ["Tests", "Check Release"]

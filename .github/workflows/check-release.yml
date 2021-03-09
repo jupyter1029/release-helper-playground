@@ -8,8 +8,8 @@ jobs:
   release_check:
     runs-on: ubuntu-latest
     env:
-      VERSION_SPEC: "100.5.1"
-      POST_VERSION_SPEC: "100.6.0.dev0"
+      VERSION_SPEC: "0.0.1a1"
+      POST_VERSION_SPEC: "0.0.2.dev0"
       CHANGELOG_OUTPUT: "/tmp/changelog_entry.md"
     steps:
       - name: Cancel Previous Runs
@@ -72,6 +72,7 @@ jobs:
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          release-helper check-md-links
           release-helper prep-python
           release-helper validate-changelog
           release-helper prep-release
