@@ -481,7 +481,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
                     lines[ind] = old_line
         changelog = changelog.replace(prev_entry, "\n".join(lines))
     else:
-        changelog = changelog.replace(END_MARKER + "\n", "")
+        changelog = changelog.replace(END_MARKER + "\n\n", "")
         changelog = changelog.replace(START_MARKER, new_entry)
 
     Path(path).write_text(changelog, encoding="utf-8")
