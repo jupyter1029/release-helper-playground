@@ -27,14 +27,14 @@ A set of helper scripts and example GitHub Action workflows to aid in automated 
   - Run the Workflow with the version spec (usually the new version number), and make sure the target branch is correct
 
 <p align="center">
-<img src="screenshots/create_changelog_workflow.png" alt="Create Changelog Workflow"
+<img src="media/create_changelog_workflow.png" alt="Create Changelog Workflow"
 	title="Create Changelog Workflow" width="50%"/>
 </p>
 
 - When the run completes, review the changelog PR that was opened, making any desired edits
 
 <p align="center">
-<img src="screenshots/changelog_pr.png" alt="Changelog Pull Request"
+<img src="media/changelog_pr.png" alt="Changelog Pull Request"
 	title="Changelog Pull Request" width=80% />
 </p>
 
@@ -43,7 +43,7 @@ A set of helper scripts and example GitHub Action workflows to aid in automated 
 - Select the Create Release workflow
 
 <p align="center">
-<img src="screenshots/create_release_workflow.png" alt="Create Release Workflow"
+<img src="media/create_release_workflow.png" alt="Create Release Workflow"
 	title="Create Release Workflow" width="50%" />
 </p>
 
@@ -51,7 +51,7 @@ A set of helper scripts and example GitHub Action workflows to aid in automated 
 - When the workflow completes, go to the releases page in the main repository and verify that the new release is there with the correct changelog. You can also go to PyPI and/or npm to verify the package(s) are available.
 
 <p align="center">
-<img src="screenshots/github_release.png" alt="GitHub Release"
+<img src="media/github_release.png" alt="GitHub Release"
 	title="GitHub Release" width="80%" />
 </p>
 
@@ -80,14 +80,24 @@ To install the latest release locally, make sure you have
   - We recommend [MyST](https://myst-parser.readthedocs.io/en/latest/?badge=latest), especially if some of your docs are in reStructuredText
   - Can use `pandoc -s changelog.rst -o changelog.md` and some hand edits as needed
   - Note that [directives](https://myst-parser.readthedocs.io/en/latest/using/syntax.html#syntax-directives) can still be used
-- [ ] Add HTML start and end comment markers to Changelog file - see example XXX
-- [ ] Add [tbump](https://github.com/tankerhq/tbump) support - see example XXX
+- [ ] Add HTML start and end comment markers to Changelog file - see example in [CHANGELOG.md](./CHANGELOG.md) (view in raw mode)
+- [ ] Add [tbump](https://github.com/tankerhq/tbump) support - see example metadata in [pyproject.toml](./pyproject.toml)
+  - We recommend using `setup.cfg` and using `version attr: <package_name>.__version__`, see example [`setup.cfg`](./setup.cfg)
+  - See documentation on `setup.cfg` [metadata](https://setuptools.readthedocs.io/en/latest/userguide/declarative_config.html)
+- [ ] Add `release-helper` to your `test` section in `extras_require` in your setup config, e.g.
+
+```
+[options.extras_require]
+test = coverage; pytest; pytest-cov; release-helper
+```
+
 - [ ] All publishers set up [secrets](https://docs.github.com/en/actions/reference/encrypted-secrets#creating-encrypted-secrets-for-a-repository) in their fork:
   - [ ] Create [`PYPI_TOKEN`](https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/#saving-credentials-on-github) and `TEST_PYPI_TOKEN` (if needed)
   - [ ] Create [`NPM_TOKEN`](https://docs.npmjs.com/creating-and-viewing-access-tokens) (if needed)
   - [ ] Create [`REPO_ACCESS_TOKEN`](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) with `public_repo` access
 - [ ] One publisher adds their `TEST_PYPI_TOKEN` to the source repo's secrets for the release check workflow
-- [ ] Add workflows for `check_release`, `create_changelog`, and `create_release` - see our examples XXX
+- [ ] Add workflows for `check_release`, `create_changelog`, and `create_release` - see the workflows in this [repo](./github/workflows)
+- [ ] Optionally add workflow for `cancel` to cancel previous workflow runs when a new one is started - see [cancel.yml](./github/workflows)
 - [ ] Start with the test PyPI server in `create-release`, then switch to the production server once it is fully working
 - [ ] If desired, add workflows, changelog, and `tbump` support to other active release branches
 
@@ -109,7 +119,8 @@ To install the latest release locally, make sure you have
 - Creates a PR with the changelog changes.
 - Notes:
   - This can be run on the repo by anyone with write access, since it only needs the built in `secrets.GITHUB_ACCESS_TOKEN`
-  - The automated PR does not start workflows (a limitation of GitHub Actions). If you hand-edit the file to make formatting/grammar changes, it will run the workflows.
+  - The automated PR does not start workflows (a limitation of GitHub Actions). If you close and open the PR or make edits from within the
+    GitHub UI it will trigger the workflows.
   - Can be re-run using the same version spec. It will add new entries but preserve existing ones (in case they have been hand modified).
 
 ## Create-Release Workflow Details
@@ -145,6 +156,14 @@ To install the latest release locally, make sure you have
 - Creates a draft GitHub release and removes it
 
 ## TODO
+
+- Use https://raw.githubusercontent.com for README images
+
+- Add support for config in `pyproject.toml` or `package.json`.
+
+- Make a `.github/actions` folder with `create_changelog`, `check_release`, and `create_release` actions for simple Python packages.
+
+  - If we allow `pre-` and `post-` commands to be run for the different steps then we could support more complex packages.
 
 - jupyter/notebook migration:
 
