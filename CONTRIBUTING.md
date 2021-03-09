@@ -20,7 +20,7 @@ Use the following steps:
 python -m pip install --upgrade setuptools pip
 git clone https://github.com/jupyter-server/release-helper
 cd release-helper
-pip install -e .
+pip install -e .[test]
 ```
 
 If you are using a system-wide Python installation and you only want to install the package for you,
@@ -46,12 +46,6 @@ release-helper --help
 ```
 
 ## Running Tests
-
-Install dependencies:
-
-```bash
-pip install -e .[test]
-```
 
 To run the Python tests, use:
 

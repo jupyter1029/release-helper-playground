@@ -62,10 +62,8 @@ include_package_data = True
 py_modules = foo
 """
 
-SETUP_PY_TEMPLATE = """
-import setuptools
-setuptools.setup()
-"""
+SETUP_PY_TEMPLATE = """__import__("setuptools").setup()\n"""
+
 
 PYPROJECT_TEMPLATE = """
 [build-system]
@@ -73,7 +71,7 @@ requires = ["setuptools>=40.8.0", "wheel"]
 build-backend = "setuptools.build_meta"
 """
 
-PY_MODULE_TEMPLATE = '__version__ = "0.0.1"'
+PY_MODULE_TEMPLATE = '__version__ = "0.0.1"\n'
 
 TBUMP_BASE_TEMPLATE = r"""
 [version]
@@ -103,10 +101,15 @@ MANIFEST_TEMPLATE = """
 include *.md
 """
 
-CHANGELOG_TEMPLATE = f"""
-# Changelog
+CHANGELOG_TEMPLATE = f"""# Changelog
+
 {cli.START_MARKER}
+
 {cli.END_MARKER}
+
+## 0.0.1
+
+Initial commit
 """
 
 
@@ -132,7 +135,7 @@ def git_repo(tmp_path):
 
     run("git checkout -b foo")
     gitignore = tmp_path / ".gitignore"
-    gitignore.write_text("dist/*\nbuild/*", encoding="utf-8")
+    gitignore.write_text("dist/*\nbuild/*\n", encoding="utf-8")
     run("git add .")
     run('git commit -m "foo"')
     run("git tag v0.0.1")
@@ -156,7 +159,7 @@ def create_python_package(git_repo):
     pyproject.write_text(PYPROJECT_TEMPLATE, encoding="utf-8")
 
     readme = git_repo / "README.md"
-    readme.write_text("Hello from foo project", encoding="utf-8")
+    readme.write_text("Hello from foo project\n", encoding="utf-8")
 
     foopy = git_repo / "foo.py"
     foopy.write_text(PY_MODULE_TEMPLATE, encoding="utf-8")
@@ -166,6 +169,12 @@ def create_python_package(git_repo):
 
     manifest = git_repo / "MANIFEST.in"
     manifest.write_text(MANIFEST_TEMPLATE, encoding="utf-8")
+
+    here = Path(__file__).parent
+    text = here.parent.joinpath(".pre-commit-config.yaml").read_text(encoding="utf-8")
+
+    pre_commit = git_repo / ".pre-commit-config.yaml"
+    pre_commit.write_text(text, encoding="utf-8")
 
     run("git add .")
     run('git commit -m "initial python package"')
@@ -211,7 +220,6 @@ def test_get_version_python(py_package):
 
 def test_get_version_npm(npm_package):
     assert cli.get_version() == "1.0.0"
-    print(str(py_package))
     npm = normalize_path(shutil.which("npm"))
     run(f"{npm} version patch")
     assert cli.get_version() == "1.0.1"
@@ -373,6 +381,9 @@ def test_prep_env_full(py_package, tmp_path):
 
 def test_prep_changelog(py_package):
     runner = CliRunner()
+
+    run("pre-commit run -a")
+
     changelog = py_package / "CHANGELOG.md"
 
     result = runner.invoke(cli.main, ["prep-env", "--version-spec", "1.0.1"])
@@ -386,6 +397,11 @@ def test_prep_changelog(py_package):
     assert cli.START_MARKER in text
     assert cli.END_MARKER in text
     assert PR_ENTRY in text
+
+    assert len(re.findall(cli.START_MARKER, text)) == 1
+    assert len(re.findall(cli.END_MARKER, text)) == 1
+
+    run("pre-commit run -a")
 
 
 def test_prep_changelog_existing(py_package):
@@ -415,6 +431,8 @@ def test_prep_changelog_existing(py_package):
 
     assert len(re.findall(cli.START_MARKER, text)) == 1
     assert len(re.findall(cli.END_MARKER, text)) == 1
+
+    run("pre-commit run -a")
 
 
 def test_check_md_links(py_package):
