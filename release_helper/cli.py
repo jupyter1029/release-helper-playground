@@ -64,7 +64,7 @@ def get_version():
         return run("python setup.py --version", quiet=True)
     elif osp.exists("package.json"):
         return json.loads(Path("package.json").read_text(encoding="utf-8"))["version"]
-    else:
+    else:  # pragma: no cover
         raise ValueError("No version identifier could be found!")
 
 
@@ -151,7 +151,7 @@ def get_changelog_entry(branch, repo, version, *, auth=None, resolve_backports=F
         A formatted changelog entry with markers
     """
     since = run(f"git tag --merged {branch}")
-    if not since:
+    if not since:  # pragma: no cover
         raise ValueError(f"No tags found on branch {branch}")
 
     since = since.splitlines()[-1]
@@ -225,7 +225,7 @@ def create_release_commit(version):
 
     if osp.exists("setup.py"):
         files = glob("dist/*")
-        if not len(files) == 2:
+        if not len(files) == 2:  # pragma: no cover
             raise ValueError("Missing distribution files")
 
         for path in files:
@@ -268,7 +268,7 @@ def bump_version(version_spec, version_cmd=""):
             if "bumpversion" in Path("setup.cfg").read_text(encoding="utf-8"):
                 version_cmd = version_cmd or "bump2version"
 
-    if not version_cmd:
+    if not version_cmd:  # pragma: no cover
         raise ValueError("Please specify a version bump command to run")
 
     # Bump the version
@@ -406,9 +406,8 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
         workflow = os.environ["GITHUB_WORKFLOW"]
         path = f"./github/workflows/{workflow}.yml"
         diff = run(f"git diff HEAD {remote}/{branch} -- {path}")
-        msg = f"Workflow file {workflow} differs from {remote} repo {repo}"
-        if path in diff:
-            print(diff)
+        msg = f"Workflow file {workflow} differs from {remote} repo {repo}:\n{diff}"
+        if path in diff:  # pragma: no cover
             raise ValueError(msg)
 
     # Bump the version
@@ -523,10 +522,10 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
     start = changelog.find(START_MARKER)
     end = changelog.find(END_MARKER)
 
-    if start == -1 or end == -1:
+    if start == -1 or end == -1:  # pragma: no cover
         raise ValueError("Missing new changelog entry delimiter(s)")
 
-    if start != changelog.rfind(START_MARKER):
+    if start != changelog.rfind(START_MARKER):  # pragma: no cover
         raise ValueError("Insert marker appears more than once in changelog")
 
     final_entry = changelog[start + len(START_MARKER) : end]
