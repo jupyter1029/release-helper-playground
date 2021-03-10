@@ -3,12 +3,11 @@ on:
   push:
     branches: "*"
 jobs:
-  release_check:
+  check_release:
     runs-on: ubuntu-latest
     env:
       VERSION_SPEC: "0.0.1a1"
       POST_VERSION_SPEC: "0.0.2.dev0"
-      CHANGELOG_OUTPUT: "/tmp/changelog_entry.md"
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.8.0
@@ -46,16 +45,13 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -e .[test]
-      - name: Check Manifest
-        run: |
-          pip install check-manifest
-          check-manifest -v
       - name: Create Changelog
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           release-helper prep-env
           release-helper prep-changelog
+          git diff
           git commit -a -m "Commit changelog change"
       - name: Create GitHub Release
         env:
