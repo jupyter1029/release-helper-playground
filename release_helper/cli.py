@@ -494,9 +494,6 @@ def prep_changelog(branch, remote, repo, auth, changelog_path, resolve_backports
     # Stage changelog
     run(f"git add {normalize_path(changelog_path)}")
 
-    # Checkout any unstaged files from version bump
-    run("git checkout -- .")
-
 
 @main.command()
 @add_options(changelog_options)

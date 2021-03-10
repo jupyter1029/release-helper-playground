@@ -35,6 +35,8 @@ jobs:
         run: |
           release-helper prep-env
           release-helper prep-changelog
+          # Checkout any unstaged files from version bump
+          git checkout -- .
       - name: Make a PR with the changelog entry change
         uses: peter-evans/create-pull-request@v3
         with:
