@@ -51,6 +51,8 @@ jobs:
         run: |
           release-helper prep-env
           release-helper prep-changelog
+          echo "Here is the status"
+          git status
           echo "Here is the diff"
           git diff
           echo "Commit the changes"
