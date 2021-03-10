@@ -371,7 +371,7 @@ def test_prep_env_full(py_package, tmp_path):
                 call("git fetch upstream foo --tags"),
                 call("git checkout -B foo upstream/foo"),
                 call(
-                    "git diff HEAD upstream/foo -- ./github/workflows/check-release.yml"
+                    "git --no-pager diff HEAD upstream/foo -- ./github/workflows/check-release.yml"
                 ),
                 call("tbump --non-interactive --only-patch 1.0.1a1"),
                 call("python setup.py --version", quiet=True),
@@ -561,11 +561,6 @@ def test_publish_release_draft(py_package):
         )
     assert result.exit_code == 0, result.output
 
-    # Commit the change and re-bump the version
-    run('git commit -a -m "commit changelog"')
-    result = runner.invoke(cli.main, ["prep-env", "--version-spec", version_spec])
-    assert result.exit_code == 0, result.output
-
     # Create the dist files
     run("python -m build .")
 
@@ -582,12 +577,8 @@ def test_publish_release_draft(py_package):
     with patch.object(cli.Github, "get_repo", return_value=repo) as mock_method:
         result = runner.invoke(cli.main, ["publish-release", "--dry-run"])
     assert result.exit_code == 0, result.output
-    args = release_mock.call_args
-    assert args[0] == "v1.5.1"
-    assert args[1] == "Release v1.5.1"
-    assert PR_ENTRY in args.args[2]
-    assert args[2]["draft"] == True
-    assert args[3]["prerelease"] == False
+    release_mock.assert_called_once()
+    delete_mock.assert_called_once()
 
 
 def test_publish_release_final(py_package):
@@ -605,11 +596,6 @@ def test_publish_release_final(py_package):
         result = runner.invoke(
             cli.main, ["prep-changelog", "--changelog-path", changelog]
         )
-    assert result.exit_code == 0, result.output
-
-    # Commit the change and re-bump the version
-    run('git commit -a -m "commit changelog"')
-    result = runner.invoke(cli.main, ["prep-env", "--version-spec", version_spec])
     assert result.exit_code == 0, result.output
 
     # Create the dist files
@@ -630,9 +616,5 @@ def test_publish_release_final(py_package):
             cli.main, ["publish-release", "--post-version-spec", "1.5.2.dev0"]
         )
     assert result.exit_code == 0, result.output
-    args = release_mock.call_args
-    assert args[0] == "v1.5.1rc0"
-    assert args[1] == "Release v1.5.1rc0"
-    assert PR_ENTRY in args.args[2]
-    assert args[2]["draft"] == False
-    assert args[3]["prerelease"] == True
+    release_mock.assert_called_once()
+    delete_mock.assert_not_called()

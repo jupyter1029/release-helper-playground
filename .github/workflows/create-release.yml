@@ -56,7 +56,7 @@ jobs:
           release-helper check-md-links
           release-helper check-changelog
           release-helper build-python
-          release-helper check-python
+          release-helper check-python dist/*
           release-helper tag-release
           release-helper publish-release
       - name: Publish PyPI Package
