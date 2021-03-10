@@ -55,8 +55,10 @@ jobs:
           git status
           echo "Here is the diff"
           git diff -u
+          cat CHANGELOG.md
           echo "Commit the changes"
           git commit -a -m "Commit changelog change"
+          cat CHANGELOG.md
       - name: Create GitHub Release
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
