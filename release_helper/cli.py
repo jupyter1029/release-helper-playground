@@ -401,7 +401,12 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
 
         remotes = run("git remote").splitlines()
         if remote not in remotes:
-            run(f"git remote add {remote} https://github.com/{repo}")
+            if auth:
+                username = os.environ["GITHUB_ACTOR"]
+                url = f"http://{username}:{auth}@github.com/{repo}.git"
+            else:
+                url = f"http://github.com/{repo}.git"
+            run(f"git remote add {remote} {url}")
 
     # Check out the remote branch so we can push to it
     run(f"git fetch {remote} {branch} --tags")
@@ -728,7 +733,7 @@ def publish_release(
     repo = repo or get_repo(remote, auth=auth)
 
     if not dry_run:
-        run(f"git push {remote} {branch} --tags")
+        run(f"git push {remote} HEAD:{branch} --follow-tags --tags")
 
     version = get_version()
 
