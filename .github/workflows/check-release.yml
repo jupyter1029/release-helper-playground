@@ -3,12 +3,11 @@ on:
   push:
     branches: "*"
 jobs:
-  release_check:
+  check_release:
     runs-on: ubuntu-latest
     env:
       VERSION_SPEC: "0.0.1a1"
       POST_VERSION_SPEC: "0.0.2.dev0"
-      CHANGELOG_OUTPUT: "/tmp/changelog_entry.md"
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.8.0
@@ -46,35 +45,24 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -e .[test]
-      - name: Check Manifest
-        run: |
-          pip install check-manifest
-          check-manifest -v
-      - name: Initialize Environment
+      - name: Create Changelog
+        env:
+          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           release-helper prep-env
-          cat ${GITHUB_ENV}
-          release-helper --help
-      - name: Run the changelog prep
+          release-helper prep-changelog
+      - name: Create GitHub Release
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          release-helper prep-changelog --keep
-          git diff
-      - name: Make a PR with the changelog entry change
-        run: |
-          echo "Can't make a PR on the release check"
-          echo "Commiting changes locally"
-          git commit -m "Commit Changelog"
-      - name: Run the release prep
-        env:
-          GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          release-helper check-md-links
-          release-helper prep-python
-          release-helper validate-changelog
-          release-helper prep-release
-          cat ${CHANGELOG_OUTPUT}
+          release-helper check-manifest
+          release-helper check-changelog
+          release-helper build-python
+          release-helper check-python dist/*
+          release-helper tag-release
+          release-helper publish-release --dry-run
+          echo "which dists?"
+          ls dist/*
       - name: Publish PyPI Package
         env:
           TWINE_USERNAME: __token__
@@ -82,29 +70,3 @@ jobs:
           REGISTRY: https://test.pypi.org/legacy/
         run: |
           twine upload --repository-url ${REGISTRY} --skip-existing dist/*
-      - name: Push the commit(s) and tag(s) to the branch
-        run: |
-          echo "Can't push on the release check"
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ env.VERSION }}
-          release_name: Release v${{ env.VERSION }}
-          body_path: ${{ env.CHANGELOG_OUTPUT }}
-          prerelease: ${{ env.IS_PRERELEASE == 'true' }}
-          draft: true
-      - name: Delete Draft Release
-        env:
-          RELEASE_ID: ${{ steps.create_release.outputs.id }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HTML_URL: ${{ steps.create_release.outputs.html_url}}
-        run: |
-          echo "For release check we don't want to leave a draft release open"
-          curl \
-            -X DELETE \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${GITHUB_TOKEN}" \
-            ${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}

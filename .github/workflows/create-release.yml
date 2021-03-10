@@ -21,7 +21,6 @@ jobs:
       VERSION_SPEC: ${{ github.event.inputs.version_spec }}
       POST_VERSION_SPEC: ${{ github.event.inputs.post_version_spec }}
       BRANCH: ${{ github.event.inputs.branch }}
-      CHANGELOG_OUTPUT: "/tmp/changelog_entry.md"
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -48,20 +47,18 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -e .[test]
-          pip install check-manifest
-      - name: Initialize Environment
-        run: |
-          release-helper prep-env
-          cat ${GITHUB_ENV}
-      - name: Run the release prep
+      - name: Create GitHub Release
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          release-helper prep-python
-          release-helper validate-changelog
-          check-manifest -v
-          release-helper prep-release
-          cat ${CHANGELOG_OUTPUT}
+          release-helper prep-env
+          release-helper check-manifest
+          release-helper check-md-links
+          release-helper check-changelog
+          release-helper build-python
+          release-helper check-python dist/*
+          release-helper tag-release
+          release-helper publish-release
       - name: Publish PyPI Package
         env:
           TWINE_USERNAME: __token__
@@ -69,18 +66,3 @@ jobs:
           REGISTRY: https://test.pypi.org/legacy/
         run: |
           twine upload --repository-url ${REGISTRY} --skip-existing dist/*
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ env.BRANCH }}
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ env.VERSION }}
-          release_name: Release v${{ env.VERSION }}
-          body_path: ${{ env.CHANGELOG_OUTPUT }}
-          prerelease: ${{ env.IS_PRERELEASE == 'true' }}

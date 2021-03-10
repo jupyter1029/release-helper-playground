@@ -131,21 +131,21 @@ test = coverage; pytest; pytest-cov; release-helper
 - Ensures that the workflow file is the same one as the target branch
 - Bumps version using the same method as the changelog action
 - Prepares the environment using the same method as the changelog action
-- Verifies the changelog entry
+- Checks the package manifest using [`check-manifest`](https://github.com/mgedmin/check-manifest)
+- Checks the links in Markdown files
+- Checks the changelog entry
   - Looks for the current entry using the HTML comment markers
   - Gets the expected changelog values using `github-activity`
   - Ensures that all PRs are the same between the two
   - Writes the changelog entry out to a file to be used as the GitHub Release text
-- If there is a Python package
-  - Builds the wheel and source distributions
-  - Makes dists can be installed and imported in a virtual environment
-- NPM and lerna support are forthcoming - See TODO
+- Builds the wheel and source distributions
+- Makes dists can be installed and imported in a virtual environment
 - Adds a commit that includes the hashes of the dist files
 - Creates an annotated version tag in standard format
 - If given, bumps the version using the post version spec
 - Pushes the commits and tag to the target `branch`
-- Creates a GitHub release for the tag with the changelog entry as the text
-- Publishes the release to PyPI (NPM support coming soon)
+- Publishes a GitHub release for the tag with the changelog entry as the text
+- Publishes a PyPI release
 
 ## Check-Release Workflow Details
 
@@ -165,7 +165,6 @@ test = coverage; pytest; pytest-cov; release-helper
   - Allow declaritve `pre-` and `post-` scripts to be run for the different steps so we can support more complex packages
   - Use a composite run steps [action](https://docs.github.com/en/actions/creating-actions/creating-a-composite-run-steps-action#creating-an-action-metadata-file)
   - Inputs will be the `env` vars in the current workflow files plus the GitHub token
-  - Use [PyGitHub](https://github.com/PyGithub/PyGithub) to handle GitHub actions (`create_pull` and `create_git_release`)
 
 - jupyter/notebook migration:
 
@@ -173,13 +172,12 @@ test = coverage; pytest; pytest-cov; release-helper
   - Add `tbump` config to replace [`jsversion`](https://github.com/jupyter/notebook/blob/4b2e849e83fcf9ffbe0755d38d635e34e56a4fea/setupbase.py#L583) step
   - Add `babel` and `npm` dependencies in the install step of the new workflows
 
-- npm/lerna support
+- lerna support
 
-  - Make an npm package that lives in the `release-helper` repo
-  - Find [workspace packages](https://github.com/jupyterlab/jupyterlab/blob/9f50c45b39e289072d4c18519ca29c974c226f69/buildutils/src/utils.ts#L16) for lerna support
-  - Publish package(s) to a [verdaccio server](https://github.com/facebook/create-react-app/blob/7e4949a20fc828577fb7626a3262832422f3ae3b/tasks/verdaccio.yaml)
-  - Incorporate jupyterlab [publish script](https://github.com/jupyterlab/jupyterlab/blob/532eb4161c01bc7e93e86c4ecb8cd1728e498458/buildutils/src/publish.ts) to pick up `dist-tag` cleanup
-  - To test installation of package(s), create a temporary npm package and install/require the new package(s)
+  - Add to [@jupyterlab/buildutils](https://github.com/jupyterlab/jupyterlab/tree/833cd34de5f7b246208744662c2d4bd62cc3bb35/buildutils/src)
+  - Add ability to start/stop a [verdaccio server](https://github.com/facebook/create-react-app/blob/7e4949a20fc828577fb7626a3262832422f3ae3b/tasks/verdaccio.yaml)
+  - Use the [publish script](https://github.com/jupyterlab/jupyterlab/blob/532eb4161c01bc7e93e86c4ecb8cd1728e498458/buildutils/src/publish.ts) so we pick up `dist-tag` handling. Add option to pass `--yes` for CLI
+  - Create a temporary npm package and install/require the new packages
 
 - jupyterlab/lumino migration:
 

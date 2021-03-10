@@ -29,16 +29,14 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -e .[test]
-      - name: Initialize Environment
-        run: |
-          release-helper prep-env
-          cat ${GITHUB_ENV}
       - name: Run the changelog prep
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          release-helper prep-env
           release-helper prep-changelog
-          git diff
+          # Checkout any unstaged files from version bump
+          git checkout -- .
       - name: Make a PR with the changelog entry change
         uses: peter-evans/create-pull-request@v3
         with:
