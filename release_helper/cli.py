@@ -580,6 +580,7 @@ def build_python():
 def check_python(dist_files, test_cmd):
     """Check Python dist files"""
     for dist_file in dist_files:
+        dist_file = normalize_path(dist_file)
         run(f"twine check {dist_file}")
 
         if not test_cmd:
@@ -612,9 +613,12 @@ def check_python(dist_files, test_cmd):
 )
 def check_npm(package, test_cmd):
     """Check npm package"""
+    npm = normalize_path(shutil.which("npm"))
+    node = normalize_path(shutil.which("node"))
+
     if osp.isdir(package):
         should_remove = True
-        tarball = osp.join(os.getcwd(), run("npm pack"))
+        tarball = osp.join(os.getcwd(), run(f"{npm} pack"))
     else:
         should_remove = True
         tarball = package
@@ -636,12 +640,12 @@ def check_npm(package, test_cmd):
 
     if not test_cmd:
         name = data["name"]
-        test_cmd = f"node -e \"require('{name}')\""
+        test_cmd = f"{node} -e \"require('{name}')\""
 
     # Install in a temporary directory and verify import
     with TemporaryDirectory() as tempdir:
-        run("npm init -y", cwd=tempdir)
-        run(f"npm install {tarball}", cwd=tempdir)
+        run(f"{npm} init -y", cwd=tempdir)
+        run(f"{npm} install {tarball}", cwd=tempdir)
         run(test_cmd, cwd=tempdir)
 
     # Remove the tarball

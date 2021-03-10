@@ -583,11 +583,11 @@ def test_publish_release_draft(py_package):
         result = runner.invoke(cli.main, ["publish-release", "--dry-run"])
     assert result.exit_code == 0, result.output
     args = release_mock.call_args
-    assert args.args[0] == "v1.5.1"
-    assert args.args[1] == "Release v1.5.1"
+    assert args[0] == "v1.5.1"
+    assert args[1] == "Release v1.5.1"
     assert PR_ENTRY in args.args[2]
-    assert args.kwargs["draft"] == True
-    assert args.kwargs["prerelease"] == False
+    assert args[2]["draft"] == True
+    assert args[3]["prerelease"] == False
 
 
 def test_publish_release_final(py_package):
@@ -631,8 +631,8 @@ def test_publish_release_final(py_package):
         )
     assert result.exit_code == 0, result.output
     args = release_mock.call_args
-    assert args.args[0] == "v1.5.1rc0"
-    assert args.args[1] == "Release v1.5.1rc0"
+    assert args[0] == "v1.5.1rc0"
+    assert args[1] == "Release v1.5.1rc0"
     assert PR_ENTRY in args.args[2]
-    assert args.kwargs["draft"] == False
-    assert args.kwargs["prerelease"] == True
+    assert args[2]["draft"] == False
+    assert args[3]["prerelease"] == True
