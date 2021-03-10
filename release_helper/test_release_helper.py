@@ -430,10 +430,8 @@ def test_prep_changelog_existing(py_package):
     text = text.replace("defining contributions", "Definining contributions")
     changelog.write_text(text, encoding="utf-8")
 
-    # Commit the change and re-bump the version
+    # Commit the change
     run('git commit -a -m "commit changelog"')
-    result = runner.invoke(cli.main, ["prep-env", "--version-spec", "1.0.1"])
-    assert result.exit_code == 0, result.output
 
     with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY

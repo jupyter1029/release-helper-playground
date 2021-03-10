@@ -386,7 +386,7 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
     print(f"branch={branch}")
 
     # Get the repo
-    repo = repo or get_repo(remote)
+    repo = repo or get_repo(remote, auth=auth)
     print(f"repository={repo}")
 
     # Set up git config if on GitHub Actions
@@ -456,7 +456,7 @@ def prep_changelog(branch, remote, repo, auth, changelog_path, resolve_backports
         raise ValueError("Insert marker appears more than once in changelog")
 
     # Get changelog entry
-    repo = repo or get_repo(remote)
+    repo = repo or get_repo(remote, auth=auth)
     entry = get_changelog_entry(
         f"{remote}/{branch}",
         repo,
@@ -523,7 +523,7 @@ def check_changelog(
 
     final_entry = changelog[start + len(START_MARKER) : end]
 
-    repo = repo or get_repo(remote)
+    repo = repo or get_repo(remote, auth=auth)
     raw_entry = get_changelog_entry(
         f"{remote}/{branch}",
         repo,
@@ -532,7 +532,7 @@ def check_changelog(
         resolve_backports=resolve_backports,
     )
 
-    if f"# {version}" not in final_entry:
+    if f"# {version}" not in final_entry:  # pragma: no cover
         print(final_entry)
         raise ValueError(f"Did not find entry for {version}")
 
@@ -548,10 +548,10 @@ def check_changelog(
                 break
         if skip:
             continue
-        if not f"[#{pr}]" in final_entry:
+        if not f"[#{pr}]" in final_entry:  # pragma: no cover
             raise ValueError(f"Missing PR #{pr} in changelog")
     for pr in final_prs:
-        if not f"[#{pr}]" in raw_entry:
+        if not f"[#{pr}]" in raw_entry:  # pragma: no cover
             raise ValueError(f"PR #{pr} does not belong in changelog for {version}")
 
     if output:
@@ -630,11 +630,11 @@ def check_npm(package, test_cmd):
     fid.close()
 
     # Bail if it is a private package or monorepo
-    if data.get("private", False):
+    if data.get("private", False):  # pragma: no cover
         raise ValueError("No need to prep a private package")
 
     # Bail if it is a monorepo
-    if "workspaces" in data:
+    if "workspaces" in data:  # pragma: no cover
         print("Do not handle monorepos here")
         return
 
@@ -725,7 +725,7 @@ def publish_release(
 ):
     """Publish GitHub release and handle post version bump"""
     branch = branch or get_branch()
-    repo = repo or get_repo(remote)
+    repo = repo or get_repo(remote, auth=auth)
 
     if not dry_run:
         run(f"git push {remote} {branch} --tags")
