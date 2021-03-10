@@ -352,6 +352,8 @@ def test_prep_env_full(py_package, tmp_path):
         GITHUB_REPOSITORY="baz/bar",
         VERSION_SPEC=version_spec,
         GITHUB_ENV=str(env_file),
+        GITHUB_ACTOR="snuffy",
+        GITHUB_ACCESS_TOKEN="abc123",
     )
     with patch("release_helper.cli.run") as mock_run, patch(
         "release_helper.cli.get_source_repo"
@@ -367,7 +369,9 @@ def test_prep_env_full(py_package, tmp_path):
                 ),
                 call('git config --global user.name "GitHub Action"'),
                 call("git remote"),
-                call("git remote add upstream https://github.com/foo/bar"),
+                call(
+                    "git remote add upstream http://snuffy:abc123@github.com/foo/bar.git"
+                ),
                 call("git fetch upstream foo --tags"),
                 call("git checkout -B foo upstream/foo"),
                 call(
