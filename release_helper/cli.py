@@ -8,10 +8,12 @@ import re
 import shlex
 import shutil
 import sys
+import tarfile
 from glob import glob
 from pathlib import Path
 from subprocess import CalledProcessError
 from subprocess import check_output
+from tempfile import TemporaryDirectory
 
 import click
 import requests
@@ -289,22 +291,13 @@ class NaturalOrderGroup(click.Group):
 
 @click.group(cls=NaturalOrderGroup)
 def main():
-    f"""Release helper scripts v{__version__}"""
+    """Release helper scripts"""
     pass
 
 
 # Extracted common options
 version_cmd_options = [
     click.option("--version-cmd", envvar="VERSION_CMD", help="The version command")
-]
-
-version_spec_options = version_cmd_options + [
-    click.option(
-        "--version-spec",
-        envvar="VERSION_SPEC",
-        required=True,
-        help="The new version specifier",
-    )
 ]
 
 branch_options = [
@@ -327,7 +320,7 @@ changelog_options = (
             "--path",
             envvar="CHANGELOG",
             default="CHANGELOG.md",
-            help="The path to the changelog file",
+            help="The path to changelog file",
         ),
         click.option(
             "--resolve-backports",
@@ -351,12 +344,18 @@ def add_options(options):
 
 
 @main.command()
-@add_options(version_spec_options)
+@add_options(version_cmd_options)
+@click.option(
+    "--version-spec",
+    envvar="VERSION_SPEC",
+    required=True,
+    help="The new version specifier",
+)
 @add_options(branch_options)
 @add_options(auth_options)
 @click.option("--output", envvar="GITHUB_ENV", help="Output file for env variables")
 def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
-    """Prep git and environment variables"""
+    """Prep git and env variables"""
 
     # Get the branch
     if not branch:
@@ -438,10 +437,10 @@ IS_PRERELEASE={is_prerelease}
 @click.option(
     "--keep",
     is_flag=True,
-    help="Whether to keep unstaged files after writing the changelog",
+    help="Whether to keep unstaged files after writing changelog",
 )
 def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
-    """Prep the changelog entry"""
+    """Prep changelog entry"""
     branch = branch or get_branch()
 
     # Get the new version
@@ -456,7 +455,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
     if changelog.find(START_MARKER) != changelog.rfind(START_MARKER):
         raise ValueError("Insert marker appears more than once in changelog")
 
-    # Get the changelog entry
+    # Get changelog entry
     repo = repo or get_repo(remote)
     entry = get_changelog_entry(
         f"{remote}/{branch}",
@@ -492,7 +491,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
 
     Path(path).write_text(changelog, encoding="utf-8")
 
-    # Stage the changelog
+    # Stage changelog
     run(f"git add {normalize_path(path)}")
 
     if not keep:
@@ -501,7 +500,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
 
     # Follow up actions
     print("Changelog Prep Complete!")
-    print("Create a PR for the Changelog change")
+    print("Create a PR for changelog change")
 
 
 @main.command()
@@ -509,14 +508,14 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
 @click.option(
     "--output", envvar="CHANGELOG_OUTPUT", help="The output file for changelog entry"
 )
-def validate_changelog(branch, remote, repo, auth, path, resolve_backports, output):
-    """Validate the changelog entry"""
+def check_changelog(branch, remote, repo, auth, path, resolve_backports, output):
+    """Check changelog entry"""
     branch = branch or get_branch()
 
     # Get the new version
     version = get_version()
 
-    # Finalize the changelog
+    # Finalize changelog
     changelog = Path(path).read_text(encoding="utf-8")
 
     start = changelog.find(START_MARKER)
@@ -546,7 +545,7 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
     raw_prs = re.findall(r"\[#(\d+)\]", raw_entry)
 
     for pr in raw_prs:
-        # Allow for the changelog PR to not be in the changelog itself
+        # Allow for changelog PR to not be in changelog itself
         skip = False
         for line in raw_entry.splitlines():
             if f"[#{pr}]" in line and "changelog" in line.lower():
@@ -555,25 +554,18 @@ def validate_changelog(branch, remote, repo, auth, path, resolve_backports, outp
         if skip:
             continue
         if not f"[#{pr}]" in final_entry:
-            raise ValueError(f"Missing PR #{pr} in the changelog")
+            raise ValueError(f"Missing PR #{pr} in changelog")
     for pr in final_prs:
         if not f"[#{pr}]" in raw_entry:
-            raise ValueError(f"PR #{pr} does not belong in the changelog for {version}")
+            raise ValueError(f"PR #{pr} does not belong in changelog for {version}")
 
     if output:
         Path(output).write_text(final_entry, encoding="utf-8")
 
 
 @main.command()
-@click.option(
-    "--test-cmd", envvar="PY_TEST_CMD", help="The command to run in the test venvs"
-)
-def prep_python(test_cmd):
-    """Build and check the python dist files"""
-    if not test_cmd:
-        name = run("python setup.py --name")
-        test_cmd = f'python -c "import {name}"'
-
+def build_python():
+    """Build Python dist files"""
     shutil.rmtree("./dist", ignore_errors=True)
 
     if osp.exists("./pyproject.toml"):
@@ -582,23 +574,82 @@ def prep_python(test_cmd):
         run("python setup.py sdist")
         run("python setup.py bdist_wheel")
 
-    run("twine check dist/*")
 
-    # Create venvs to install sdist and wheel
-    # run the test command in the venv
-    for asset in ["gz", "whl"]:
-        env_path = normalize_path(osp.abspath(f"./test_{asset}"))
-        if os.name == "nt":  # pragma: no cover
-            bin_path = f"{env_path}/Scripts/"
-        else:
-            bin_path = f"{env_path}/bin"
-        fname = normalize_path(glob(f"dist/*.{asset}")[0])
-        # Create the virtual environment, upgrade pip,
-        # install, and import
-        run(f"python -m venv {env_path}")
-        run(f"{bin_path}/python -m pip install -U pip")
-        run(f"{bin_path}/pip install -q {fname}")
-        run(f"{bin_path}/{test_cmd}")
+@main.command()
+@click.argument("dist-files", nargs=-1)
+@click.option(
+    "--test-cmd", envvar="PY_TEST_CMD", help="The command to run in the test venvs"
+)
+def check_python(dist_files, test_cmd):
+    """Check Python dist files"""
+    for dist_file in dist_files:
+        run(f"twine check {dist_file}")
+
+        if not test_cmd:
+            # Get the package name from the dist file name
+            name = re.match(r"(\S+)-\d", osp.basename(dist_file)).groups()[0]
+            name = name.replace("-", "_")
+            test_cmd = f'python -c "import {name}"'
+
+        # Create venvs to install dist file
+        # run the test command in the venv
+        with TemporaryDirectory() as td:
+            env_path = normalize_path(osp.abspath(td))
+            if os.name == "nt":  # pragma: no cover
+                bin_path = f"{env_path}/Scripts/"
+            else:
+                bin_path = f"{env_path}/bin"
+
+            # Create the virtual env, upgrade pip,
+            # install, and run test command
+            run(f"python -m venv {env_path}")
+            run(f"{bin_path}/python -m pip install -U pip")
+            run(f"{bin_path}/pip install -q {dist_file}")
+            run(f"{bin_path}/{test_cmd}")
+
+
+@main.command()
+@click.argument("package", default=".")
+@click.option(
+    "--test-cmd", envvar="NPM_TEST_CMD", help="The command to run in isolated install."
+)
+def check_npm(package, test_cmd):
+    """Validate npm package"""
+    if os.path.isdir(package):
+        should_remove = True
+        tarball = osp.join(os.getcwd(), run("npm pack"))
+    else:
+        should_remove = True
+        tarball = package
+
+    # Get the package json info from the tarball
+    fid = tarfile.open(tarball)
+    data = fid.extractfile("package/package.json").read()
+    data = json.loads(data.decode("utf-8"))
+    fid.close()
+
+    # Bail if it is a private package or monorepo
+    if data.get("private", False):
+        raise ValueError("No need to prep a private package")
+
+    # Bail if it is a monorepo
+    if "workspaces" in data:
+        print("Do not handle monorepos here")
+        return
+
+    if not test_cmd:
+        name = data["name"]
+        test_cmd = f"node -e \"require('{name}')\""
+
+    # Install in a temporary directory and verify import
+    with TemporaryDirectory() as tempdir:
+        run("npm init -y", cwd=tempdir)
+        run(f"npm install {tarball}", cwd=tempdir)
+        run(test_cmd, cwd=tempdir)
+
+    # Remove the tarball
+    if should_remove:
+        os.remove(tarball)
 
 
 @main.command()
@@ -616,7 +667,7 @@ def prep_python(test_cmd):
     help="Duration in seconds for links to be cached (default one week)",
 )
 def check_md_links(ignore, cache_file, links_expire):
-    """Check links in Markdown files"""
+    """Check Markdown file links"""
     cache_dir = os.path.expanduser(cache_file).replace(os.sep, "/")
     os.makedirs(cache_dir, exist_ok=True)
     cmd = "pytest --check-links --check-links-cache "
@@ -642,7 +693,7 @@ def check_md_links(ignore, cache_file, links_expire):
     help="The post release version (usually dev)",
 )
 def prep_release(branch, remote, repo, version_cmd, post_version_spec):
-    """Create commit(s) and tag, handle post version bump"""
+    """Commit and tag, handle post version bump"""
     # Get the new version
     version = get_version()
 

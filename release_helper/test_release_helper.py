@@ -7,6 +7,7 @@ import re
 import shlex
 import shutil
 import sys
+from glob import glob
 from pathlib import Path
 from unittest.mock import call
 from unittest.mock import patch
@@ -184,6 +185,7 @@ def create_python_package(git_repo):
 def create_npm_package(git_repo):
     npm = normalize_path(shutil.which("npm"))
     run(f"{npm} init -y")
+    git_repo.joinpath("index.js").write_text('console.log("hello")', encoding="utf-8")
     run("git add .")
     run('git commit -m "initial npm package"')
     return git_repo
@@ -455,7 +457,7 @@ def test_check_md_links(py_package):
     assert result.exit_code == 0, result.output
 
 
-def test_validate_changelog(py_package, tmp_path):
+def test_check_changelog(py_package, tmp_path):
     runner = CliRunner()
     changelog = py_package / "CHANGELOG.md"
     output = tmp_path / "output.md"
@@ -475,7 +477,7 @@ def test_validate_changelog(py_package, tmp_path):
     with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(
-            cli.main, ["validate-changelog", "--path", changelog, "--output", output]
+            cli.main, ["check-changelog", "--path", changelog, "--output", output]
         )
     assert result.exit_code == 0, result.output
 
@@ -485,9 +487,24 @@ def test_validate_changelog(py_package, tmp_path):
     assert cli.END_MARKER in text
 
 
-def test_prep_python(py_package):
+def test_build_python(py_package):
     runner = CliRunner()
-    result = runner.invoke(cli.main, ["prep-python"])
+    result = runner.invoke(cli.main, ["build-python"])
+    assert result.exit_code == 0, result.output
+
+
+def test_check_python(py_package):
+    runner = CliRunner()
+    result = runner.invoke(cli.main, ["build-python"])
+    assert result.exit_code == 0, result.output
+    dist_files = glob(str(py_package / "dist" / "*"))
+    result = runner.invoke(cli.main, ["check-python"] + dist_files)
+    assert result.exit_code == 0, result.output
+
+
+def test_check_npm(npm_package):
+    runner = CliRunner()
+    result = runner.invoke(cli.main, ["check-npm"])
     assert result.exit_code == 0, result.output
 
 

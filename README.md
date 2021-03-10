@@ -173,13 +173,12 @@ test = coverage; pytest; pytest-cov; release-helper
   - Add `tbump` config to replace [`jsversion`](https://github.com/jupyter/notebook/blob/4b2e849e83fcf9ffbe0755d38d635e34e56a4fea/setupbase.py#L583) step
   - Add `babel` and `npm` dependencies in the install step of the new workflows
 
-- npm/lerna support
+- lerna support
 
-  - Make an npm package that lives in the `release-helper` repo
-  - Find [workspace packages](https://github.com/jupyterlab/jupyterlab/blob/9f50c45b39e289072d4c18519ca29c974c226f69/buildutils/src/utils.ts#L16) for lerna support
-  - Publish package(s) to a [verdaccio server](https://github.com/facebook/create-react-app/blob/7e4949a20fc828577fb7626a3262832422f3ae3b/tasks/verdaccio.yaml)
-  - Incorporate jupyterlab [publish script](https://github.com/jupyterlab/jupyterlab/blob/532eb4161c01bc7e93e86c4ecb8cd1728e498458/buildutils/src/publish.ts) to pick up `dist-tag` cleanup
-  - To test installation of package(s), create a temporary npm package and install/require the new package(s)
+  - Add to [@jupyterlab/buildutils](https://github.com/jupyterlab/jupyterlab/tree/833cd34de5f7b246208744662c2d4bd62cc3bb35/buildutils/src)
+  - Add ability to start/stop a [verdaccio server](https://github.com/facebook/create-react-app/blob/7e4949a20fc828577fb7626a3262832422f3ae3b/tasks/verdaccio.yaml)
+  - Use the [publish script](https://github.com/jupyterlab/jupyterlab/blob/532eb4161c01bc7e93e86c4ecb8cd1728e498458/buildutils/src/publish.ts) so we pick up `dist-tag` handling. Add option to pass `--yes` for CLI
+  - Create a temporary npm package and install/require the new packages
 
 - jupyterlab/lumino migration:
 
