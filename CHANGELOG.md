@@ -4,15 +4,17 @@
 
 ## 0.0.5
 
-([Full Changelog](https://github.com/jovyan123-playground/release-helper-playground/compare/v0.0.4...765adb07d96ef67a3b584c8f26bb85a8451290b1))
+([Full Changelog](https://github.com/jovyan123-playground/release-helper-playground/compare/v0.0.4...abef4a0a33fa4bb3d24efa045de82b2a51ef778b))
 
+- add auth to remote if available [#31](https://github.com/jovyan123-playground/release-helper-playground/pull/31) ([@jovyan123-playground](https://github.com/jovyan123-playground))
+- Automated Changelog for 0.0.5 on main [#30](https://github.com/jovyan123-playground/release-helper-playground/pull/30) ([@github-actions](https://github.com/github-actions))
 - Add more utilities [#29](https://github.com/jovyan123-playground/release-helper-playground/pull/29) ([@jovyan123-playground](https://github.com/jovyan123-playground))
 
 ### Contributors to this release
 
 ([GitHub contributors page for this release](https://github.com/jovyan123-playground/release-helper-playground/graphs/contributors?from=2021-03-09&to=2021-03-10&type=c))
 
-[@jovyan123-playground](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helper-playground+involves%3Ajovyan123-playground+updated%3A2021-03-09..2021-03-10&type=Issues)
+[@codecov](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helper-playground+involves%3Acodecov+updated%3A2021-03-09..2021-03-10&type=Issues) | [@github-actions](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helper-playground+involves%3Agithub-actions+updated%3A2021-03-09..2021-03-10&type=Issues) | [@jovyan123-playground](https://github.com/search?q=repo%3Ajovyan123-playground%2Frelease-helper-playground+involves%3Ajovyan123-playground+updated%3A2021-03-09..2021-03-10&type=Issues)
 
 <!-- <END NEW CHANGELOG ENTRY> -->
 
