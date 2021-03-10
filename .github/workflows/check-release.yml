@@ -54,7 +54,7 @@ jobs:
           echo "Here is the status"
           git status
           echo "Here is the diff"
-          git diff
+          git diff -u
           echo "Commit the changes"
           git commit -a -m "Commit changelog change"
       - name: Create GitHub Release
