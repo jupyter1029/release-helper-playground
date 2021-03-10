@@ -17,6 +17,7 @@ from tempfile import TemporaryDirectory
 
 import click
 import requests
+from github import Github
 from github_activity import generate_activity_md
 
 from release_helper import __version__
@@ -46,12 +47,25 @@ def run(cmd, **kwargs):
 
 
 def get_branch():
-    """Get the local git branch"""
-    return run("git branch --show-current", quiet=True)
+    """Get the appropriat git branch"""
+    if os.environ.get("GITHUB_BASE_REF"):
+        # GitHub Action PR Event
+        branch = os.environ["GITHUB_BASE_REF"]
+    elif os.environ.get("GITHUB_REF"):
+        # GitHub Action Push Event
+        # e.g. refs/heads/feature-branch-1
+        branch = os.environ["GITHUB_REF"].split("/")[-1]
+    else:
+        branch = run("git branch --show-current", quiet=True)
+    return branch
 
 
-def get_repo(remote):
+def get_repo(remote, auth=None):
     """Get the remote repo org and name"""
+    gh_repo = os.environ.get("GITHUB_REPOSITORY")
+    if gh_repo:
+        return get_source_repo(gh_repo, auth=auth)
+
     url = run(f"git remote get-url {remote}")
     url = normalize_path(url)
     parts = url.split("/")[-2:]
@@ -277,6 +291,12 @@ def bump_version(version_spec, version_cmd=""):
     run(f"{version_cmd} {version_spec}")
 
 
+def is_prerelease(version):
+    """Test whether a version is a prerelease version"""
+    final_version = re.match("([0-9]+.[0-9]+.[0-9]+)", version).groups()[0]
+    return final_version != version
+
+
 # """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 # Start CLI
 # """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -312,16 +332,20 @@ auth_options = [
     click.option("--auth", envvar="GITHUB_ACCESS_TOKEN", help="The GitHub auth token"),
 ]
 
+changelog_path_options = [
+    click.option(
+        "--changelog-path",
+        envvar="CHANGELOG",
+        default="CHANGELOG.md",
+        help="The path to changelog file",
+    ),
+]
+
 changelog_options = (
     branch_options
     + auth_options
+    + changelog_path_options
     + [
-        click.option(
-            "--path",
-            envvar="CHANGELOG",
-            default="CHANGELOG.md",
-            help="The path to changelog file",
-        ),
         click.option(
             "--resolve-backports",
             envvar="RESOLVE_BACKPORTS",
@@ -355,23 +379,15 @@ def add_options(options):
 @add_options(auth_options)
 @click.option("--output", envvar="GITHUB_ENV", help="Output file for env variables")
 def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
-    """Prep git and env variables"""
+    """Prep git and env variables and bump version"""
 
     # Get the branch
-    if not branch:
-        if os.environ.get("GITHUB_BASE_REF"):
-            # GitHub Action PR Event
-            branch = os.environ["GITHUB_BASE_REF"]
-        elif os.environ.get("GITHUB_REF"):
-            # GitHub Action Push Event
-            # e.g. refs/heads/feature-branch-1
-            branch = os.environ["GITHUB_REF"].split("/")[-1]
-        else:
-            branch = get_branch()
-
+    branch = branch or get_branch()
     print(f"branch={branch}")
 
-    gh_repo = os.environ.get("GITHUB_REPOSITORY")
+    # Get the repo
+    repo = repo or get_repo(remote)
+    print(f"repository={repo}")
 
     # Set up git config if on GitHub Actions
     is_action = "GITHUB_ACTIONS" in os.environ and os.environ["GITHUB_ACTIONS"]
@@ -383,18 +399,9 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
         )
         run('git config --global user.name "GitHub Action"')
 
-        # Use original ("source") repo as the default target on Actions.
-        if not repo:
-            repo = get_source_repo(gh_repo, auth=auth)
-
         remotes = run("git remote").splitlines()
         if remote not in remotes:
             run(f"git remote add {remote} https://github.com/{repo}")
-
-    elif not repo:
-        repo = get_repo(remote)
-
-    print(f"repository={repo}")
 
     # Check out the remote branch so we can push to it
     run(f"git fetch {remote} {branch} --tags")
@@ -414,10 +421,8 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
 
     version = get_version()
     print(f"version={version}")
-
-    final_version = re.match("([0-9]+.[0-9]+.[0-9]+)", version).groups()[0]
-    is_prerelease = str(final_version != version).lower()
-    print(f"is_prerelease={is_prerelease}")
+    is_prerelease_str = str(is_prerelease(version)).lower()
+    print(f"is_prerelease={is_prerelease_str}")
 
     if output:
         print(f"Writing env variables to {output} file")
@@ -426,7 +431,7 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
 BRANCH={branch}
 VERSION={version}
 REPOSITORY={repo}
-IS_PRERELEASE={is_prerelease}
+IS_PRERELEASE={is_prerelease_str}
 """.strip(),
             encoding="utf-8",
         )
@@ -434,12 +439,7 @@ IS_PRERELEASE={is_prerelease}
 
 @main.command()
 @add_options(changelog_options)
-@click.option(
-    "--keep",
-    is_flag=True,
-    help="Whether to keep unstaged files after writing changelog",
-)
-def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
+def prep_changelog(branch, remote, repo, auth, changelog_path, resolve_backports):
     """Prep changelog entry"""
     branch = branch or get_branch()
 
@@ -447,7 +447,7 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
     version = get_version()
 
     # Get the existing changelog and run some validation
-    changelog = Path(path).read_text(encoding="utf-8")
+    changelog = Path(changelog_path).read_text(encoding="utf-8")
 
     if START_MARKER not in changelog or END_MARKER not in changelog:
         raise ValueError("Missing insert marker for changelog")
@@ -489,18 +489,13 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
         changelog = changelog.replace(END_MARKER + "\n", "")
         changelog = changelog.replace(START_MARKER, new_entry)
 
-    Path(path).write_text(changelog, encoding="utf-8")
+    Path(changelog_path).write_text(changelog, encoding="utf-8")
 
     # Stage changelog
-    run(f"git add {normalize_path(path)}")
+    run(f"git add {normalize_path(changelog_path)}")
 
-    if not keep:
-        # Checkout any unstaged files from version bump
-        run("git checkout -- .")
-
-    # Follow up actions
-    print("Changelog Prep Complete!")
-    print("Create a PR for changelog change")
+    # Checkout any unstaged files from version bump
+    run("git checkout -- .")
 
 
 @main.command()
@@ -508,7 +503,9 @@ def prep_changelog(branch, remote, repo, auth, path, resolve_backports, keep):
 @click.option(
     "--output", envvar="CHANGELOG_OUTPUT", help="The output file for changelog entry"
 )
-def check_changelog(branch, remote, repo, auth, path, resolve_backports, output):
+def check_changelog(
+    branch, remote, repo, auth, changelog_path, resolve_backports, output
+):
     """Check changelog entry"""
     branch = branch or get_branch()
 
@@ -516,7 +513,7 @@ def check_changelog(branch, remote, repo, auth, path, resolve_backports, output)
     version = get_version()
 
     # Finalize changelog
-    changelog = Path(path).read_text(encoding="utf-8")
+    changelog = Path(changelog_path).read_text(encoding="utf-8")
 
     start = changelog.find(START_MARKER)
     end = changelog.find(END_MARKER)
@@ -614,8 +611,8 @@ def check_python(dist_files, test_cmd):
     "--test-cmd", envvar="NPM_TEST_CMD", help="The command to run in isolated install."
 )
 def check_npm(package, test_cmd):
-    """Validate npm package"""
-    if os.path.isdir(package):
+    """Check npm package"""
+    if osp.isdir(package):
         should_remove = True
         tarball = osp.join(os.getcwd(), run("npm pack"))
     else:
@@ -653,6 +650,12 @@ def check_npm(package, test_cmd):
 
 
 @main.command()
+def check_manifest():
+    """Check the project manifest"""
+    run("check-manifest -v")
+
+
+@main.command()
 @click.option(
     "--ignore",
     default="CHANGELOG.md",
@@ -668,7 +671,7 @@ def check_npm(package, test_cmd):
 )
 def check_md_links(ignore, cache_file, links_expire):
     """Check Markdown file links"""
-    cache_dir = os.path.expanduser(cache_file).replace(os.sep, "/")
+    cache_dir = osp.expanduser(cache_file).replace(os.sep, "/")
     os.makedirs(cache_dir, exist_ok=True)
     cmd = "pytest --check-links --check-links-cache "
     cmd += f"--check-links-cache-expire-after {links_expire} "
@@ -686,14 +689,8 @@ def check_md_links(ignore, cache_file, links_expire):
 
 @main.command()
 @add_options(branch_options)
-@add_options(version_cmd_options)
-@click.option(
-    "--post-version-spec",
-    envvar="POST_VERSION_SPEC",
-    help="The post release version (usually dev)",
-)
-def prep_release(branch, remote, repo, version_cmd, post_version_spec):
-    """Commit and tag, handle post version bump"""
+def tag_release(branch, remote, repo):
+    """Create release commit and tag"""
     # Get the new version
     version = get_version()
 
@@ -707,6 +704,50 @@ def prep_release(branch, remote, repo, version_cmd, post_version_spec):
     tag_name = f"v{version}"
     run(f'git tag {tag_name} -a -m "Release {tag_name}"')
 
+
+@main.command()
+@add_options(branch_options)
+@add_options(auth_options)
+@add_options(changelog_path_options)
+@add_options(version_cmd_options)
+@click.option(
+    "--post-version-spec",
+    envvar="POST_VERSION_SPEC",
+    help="The post release version (usually dev)",
+)
+@click.option("--dry-run", is_flag=True, help="Run as a dry run")
+def publish_release(
+    branch, remote, repo, auth, changelog_path, version_cmd, post_version_spec, dry_run
+):
+    """Publish GitHub release and handle post version bump"""
+    branch = branch or get_branch()
+    repo = repo or get_repo(remote)
+
+    if not dry_run:
+        run(f"git push {remote} {branch} --tags")
+
+    version = get_version()
+
+    g = Github(auth)
+    r = g.get_repo(repo)
+
+    changelog = Path(changelog_path).read_text(encoding="utf-8")
+
+    start = changelog.find(START_MARKER)
+    end = changelog.find(END_MARKER)
+    message = changelog[start + len(START_MARKER) : end]
+
+    prerelease = is_prerelease(version)
+    release = r.create_git_release(
+        f"v{version}",
+        f"Release v{version}",
+        message,
+        draft=dry_run,
+        prerelease=prerelease,
+    )
+    if dry_run:
+        release.delete_release()
+
     # Bump to post version if given
     if post_version_spec:
         bump_version(post_version_spec, version_cmd)
@@ -714,12 +755,8 @@ def prep_release(branch, remote, repo, version_cmd, post_version_spec):
         print(f"Bumped version to {post_version}")
         run(f'git commit -a -m "Bump to {post_version}"')
 
-    # Follow up actions
-    print("\n\n\n**********\n")
-    print("Release Prep Complete!")
-    print(r"Push to PyPI with \`twine upload dist/*\`")
-    print(f"Push changes with `git push {remote} {branch} --tags`")
-    print("Make a GitHub release")
+        if not dry_run:
+            run(f"git push {remote} {branch}")
 
 
 if __name__ == "__main__":  # pragma: no cover

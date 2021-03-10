@@ -131,21 +131,21 @@ test = coverage; pytest; pytest-cov; release-helper
 - Ensures that the workflow file is the same one as the target branch
 - Bumps version using the same method as the changelog action
 - Prepares the environment using the same method as the changelog action
-- Verifies the changelog entry
+- Checks the package manifest using [`check-manifest`](https://github.com/mgedmin/check-manifest)
+- Checks the links in Markdown files
+- Checks the changelog entry
   - Looks for the current entry using the HTML comment markers
   - Gets the expected changelog values using `github-activity`
   - Ensures that all PRs are the same between the two
   - Writes the changelog entry out to a file to be used as the GitHub Release text
-- If there is a Python package
-  - Builds the wheel and source distributions
-  - Makes dists can be installed and imported in a virtual environment
-- NPM and lerna support are forthcoming - See TODO
+- Builds the wheel and source distributions
+- Makes dists can be installed and imported in a virtual environment
 - Adds a commit that includes the hashes of the dist files
 - Creates an annotated version tag in standard format
 - If given, bumps the version using the post version spec
 - Pushes the commits and tag to the target `branch`
-- Creates a GitHub release for the tag with the changelog entry as the text
-- Publishes the release to PyPI (NPM support coming soon)
+- Publishes a GitHub release for the tag with the changelog entry as the text
+- Publishes a PyPI release
 
 ## Check-Release Workflow Details
 
@@ -165,7 +165,6 @@ test = coverage; pytest; pytest-cov; release-helper
   - Allow declaritve `pre-` and `post-` scripts to be run for the different steps so we can support more complex packages
   - Use a composite run steps [action](https://docs.github.com/en/actions/creating-actions/creating-a-composite-run-steps-action#creating-an-action-metadata-file)
   - Inputs will be the `env` vars in the current workflow files plus the GitHub token
-  - Use [PyGitHub](https://github.com/PyGithub/PyGithub) to handle GitHub actions (`create_pull` and `create_git_release`)
 
 - jupyter/notebook migration:
 

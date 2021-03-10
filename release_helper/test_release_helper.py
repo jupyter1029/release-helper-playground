@@ -10,9 +10,12 @@ import sys
 from glob import glob
 from pathlib import Path
 from unittest.mock import call
+from unittest.mock import MagicMock
 from unittest.mock import patch
 
 from click.testing import CliRunner
+from github.GitRelease import GitRelease
+from github.Repository import Repository
 from pytest import fixture
 
 from release_helper import cli
@@ -100,6 +103,8 @@ search = '"version": "{current_version}"'
 
 MANIFEST_TEMPLATE = """
 include *.md
+include *.toml
+include *.yaml
 """
 
 CHANGELOG_TEMPLATE = f"""# Changelog
@@ -393,7 +398,9 @@ def test_prep_changelog(py_package):
 
     with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
-        result = runner.invoke(cli.main, ["prep-changelog", "--path", changelog])
+        result = runner.invoke(
+            cli.main, ["prep-changelog", "--changelog-path", changelog]
+        )
     assert result.exit_code == 0, result.output
     text = changelog.read_text(encoding="utf-8")
     assert cli.START_MARKER in text
@@ -416,16 +423,23 @@ def test_prep_changelog_existing(py_package):
     with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(
-            cli.main, ["prep-changelog", "--path", changelog, "--keep"]
+            cli.main, ["prep-changelog", "--changelog-path", changelog]
         )
     assert result.exit_code == 0, result.output
     text = changelog.read_text(encoding="utf-8")
     text = text.replace("defining contributions", "Definining contributions")
     changelog.write_text(text, encoding="utf-8")
 
+    # Commit the change and re-bump the version
+    run('git commit -a -m "commit changelog"')
+    result = runner.invoke(cli.main, ["prep-env", "--version-spec", "1.0.1"])
+    assert result.exit_code == 0, result.output
+
     with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
-        result = runner.invoke(cli.main, ["prep-changelog", "--path", changelog])
+        result = runner.invoke(
+            cli.main, ["prep-changelog", "--changelog-path", changelog]
+        )
     assert result.exit_code == 0, result.output
     text = changelog.read_text(encoding="utf-8")
     assert "Definining contributions" in text, text
@@ -469,7 +483,9 @@ def test_check_changelog(py_package, tmp_path):
 
     with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
-        result = runner.invoke(cli.main, ["prep-changelog", "--path", changelog])
+        result = runner.invoke(
+            cli.main, ["prep-changelog", "--changelog-path", changelog]
+        )
     assert result.exit_code == 0, result.output
 
     # then prep the release
@@ -477,7 +493,8 @@ def test_check_changelog(py_package, tmp_path):
     with patch("release_helper.cli.generate_activity_md") as mocked_gen:
         mocked_gen.return_value = CHANGELOG_ENTRY
         result = runner.invoke(
-            cli.main, ["check-changelog", "--path", changelog, "--output", output]
+            cli.main,
+            ["check-changelog", "--changelog-path", changelog, "--output", output],
         )
     assert result.exit_code == 0, result.output
 
@@ -508,7 +525,13 @@ def test_check_npm(npm_package):
     assert result.exit_code == 0, result.output
 
 
-def test_prep_release(py_package):
+def test_check_manifest(py_package):
+    runner = CliRunner()
+    result = runner.invoke(cli.main, ["check-manifest"])
+    assert result.exit_code == 0, result.output
+
+
+def test_tag_release(py_package):
     runner = CliRunner()
     version_spec = "1.5.1"
     # Prep the env
@@ -516,8 +539,100 @@ def test_prep_release(py_package):
     assert result.exit_code == 0, result.output
     # Create the dist files
     run("python -m build .")
-    # Finalize the release
-    result = runner.invoke(
-        cli.main, ["prep-release", "--post-version-spec", "1.5.2.dev0"]
-    )
+    # Tag the release
+    result = runner.invoke(cli.main, ["tag-release"])
     assert result.exit_code == 0, result.output
+
+
+def test_publish_release_draft(py_package):
+    runner = CliRunner()
+    version_spec = "1.5.1"
+    changelog = py_package / "CHANGELOG.md"
+
+    # Prep the env
+    result = runner.invoke(cli.main, ["prep-env", "--version-spec", version_spec])
+    assert result.exit_code == 0, result.output
+
+    # Prep the changelog
+    with patch("release_helper.cli.generate_activity_md") as mocked_gen:
+        mocked_gen.return_value = CHANGELOG_ENTRY
+        result = runner.invoke(
+            cli.main, ["prep-changelog", "--changelog-path", changelog]
+        )
+    assert result.exit_code == 0, result.output
+
+    # Commit the change and re-bump the version
+    run('git commit -a -m "commit changelog"')
+    result = runner.invoke(cli.main, ["prep-env", "--version-spec", version_spec])
+    assert result.exit_code == 0, result.output
+
+    # Create the dist files
+    run("python -m build .")
+
+    # Finalize the release
+    result = runner.invoke(cli.main, ["prep-release"])
+
+    # Publish the release - dry run
+    repo = Repository(None, dict(), dict(), True)
+    release = GitRelease(None, dict(), dict(), True)
+
+    repo.create_git_release = release_mock = MagicMock(return_value=release)
+    release.delete_release = delete_mock = MagicMock()
+
+    with patch.object(cli.Github, "get_repo", return_value=repo) as mock_method:
+        result = runner.invoke(cli.main, ["publish-release", "--dry-run"])
+    assert result.exit_code == 0, result.output
+    args = release_mock.call_args
+    assert args.args[0] == "v1.5.1"
+    assert args.args[1] == "Release v1.5.1"
+    assert PR_ENTRY in args.args[2]
+    assert args.kwargs["draft"] == True
+    assert args.kwargs["prerelease"] == False
+
+
+def test_publish_release_final(py_package):
+    runner = CliRunner()
+    version_spec = "1.5.1rc0"
+    changelog = py_package / "CHANGELOG.md"
+
+    # Prep the env
+    result = runner.invoke(cli.main, ["prep-env", "--version-spec", version_spec])
+    assert result.exit_code == 0, result.output
+
+    # Prep the changelog
+    with patch("release_helper.cli.generate_activity_md") as mocked_gen:
+        mocked_gen.return_value = CHANGELOG_ENTRY
+        result = runner.invoke(
+            cli.main, ["prep-changelog", "--changelog-path", changelog]
+        )
+    assert result.exit_code == 0, result.output
+
+    # Commit the change and re-bump the version
+    run('git commit -a -m "commit changelog"')
+    result = runner.invoke(cli.main, ["prep-env", "--version-spec", version_spec])
+    assert result.exit_code == 0, result.output
+
+    # Create the dist files
+    run("python -m build .")
+
+    # Finalize the release
+    result = runner.invoke(cli.main, ["prep-release"])
+
+    # Publish the release
+    repo = Repository(None, dict(), dict(), True)
+    release = GitRelease(None, dict(), dict(), True)
+
+    repo.create_git_release = release_mock = MagicMock(return_value=release)
+    release.delete_release = delete_mock = MagicMock()
+
+    with patch.object(cli.Github, "get_repo", return_value=repo) as mock_method:
+        result = runner.invoke(
+            cli.main, ["publish-release", "--post-version-spec", "1.5.2.dev0"]
+        )
+    assert result.exit_code == 0, result.output
+    args = release_mock.call_args
+    assert args.args[0] == "v1.5.1rc0"
+    assert args.args[1] == "Release v1.5.1rc0"
+    assert PR_ENTRY in args.args[2]
+    assert args.kwargs["draft"] == False
+    assert args.kwargs["prerelease"] == True
