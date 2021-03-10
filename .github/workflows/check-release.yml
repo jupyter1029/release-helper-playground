@@ -51,7 +51,8 @@ jobs:
         run: |
           release-helper prep-env
           release-helper prep-changelog
-          git diff
+          echo "Here is the diff"
+          git diff --no-pager
           git commit -a -m "Commit changelog change"
       - name: Create GitHub Release
         env:

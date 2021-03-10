@@ -411,7 +411,7 @@ def prep_env(version_spec, version_cmd, branch, remote, repo, auth, output):
     if "GITHUB_WORKFLOW" in os.environ:
         workflow = os.environ["GITHUB_WORKFLOW"]
         path = f"./github/workflows/{workflow}.yml"
-        diff = run(f"git diff HEAD {remote}/{branch} -- {path}")
+        diff = run(f"git --no-pager diff HEAD {remote}/{branch} -- {path}")
         msg = f"Workflow file {workflow} differs from {remote} repo {repo}:\n{diff}"
         if path in diff:  # pragma: no cover
             raise ValueError(msg)
