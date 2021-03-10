@@ -536,6 +536,7 @@ def check_changelog(
     )
 
     if f"# {version}" not in final_entry:
+        print(final_entry)
         raise ValueError(f"Did not find entry for {version}")
 
     final_prs = re.findall(r"\[#(\d+)\]", final_entry)
