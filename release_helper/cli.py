@@ -621,6 +621,8 @@ def check_npm(package, test_cmd):
         should_remove = True
         tarball = package
 
+    tarball = normalize_path(tarball)
+
     # Get the package json info from the tarball
     fid = tarfile.open(tarball)
     data = fid.extractfile("package/package.json").read()

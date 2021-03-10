@@ -61,6 +61,8 @@ jobs:
           release-helper check-python dist/*
           release-helper tag-release
           release-helper publish-release --dry-run
+          echo "which dists?"
+          ls dist/*
       - name: Publish PyPI Package
         env:
           TWINE_USERNAME: __token__
