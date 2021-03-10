@@ -55,10 +55,11 @@ jobs:
         env:
           GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          release-helper check-manifest
           release-helper check-changelog
           release-helper build-python
           release-helper check-python dist/*
+          release-helper check-manifest
+          release-helper check-md-links
           release-helper tag-release
           release-helper publish-release --dry-run
           echo "which dists?"
